@@ -5,3 +5,4 @@ const String createTeamRoute = '/create-team';
 const String teamCodeRoute = '/team-code';
 const String processingRoute = '/processing';
 const String learnRouteRoute = '/learn-route';
+const String baseRoute = '/base';

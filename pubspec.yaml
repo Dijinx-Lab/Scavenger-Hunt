@@ -41,6 +41,7 @@ dependencies:
   pinput: ^4.0.0
   clipboard: ^0.1.3
   video_player: ^2.8.2
+  salomon_bottom_bar: ^3.3.2
 
 dev_dependencies:
   flutter_test:

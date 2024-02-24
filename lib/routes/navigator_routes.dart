@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
+import 'package:scavenger_hunt/views/base/base_screen.dart';
 import 'package:scavenger_hunt/views/learn/learn_route_screen.dart';
 import 'package:scavenger_hunt/views/team/create_team/create_team_screen.dart';
 import 'package:scavenger_hunt/views/team/create_team/team_code_screen.dart';
@@ -33,6 +34,9 @@ class NavigatorRoutes {
         break;
       case learnRouteRoute:
         page = const LearnRouteScreen();
+        break;
+      case baseRoute:
+        page = const BaseScreen();
         break;
         
       default:

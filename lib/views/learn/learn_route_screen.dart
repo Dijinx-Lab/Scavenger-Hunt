@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/widgets/custom_rounded_button.dart';
 import 'package:video_player/video_player.dart';
@@ -115,7 +116,7 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 width: double.infinity,
                 child: CustomRoundedButton(
                   "Start Journey",
-                  () => (),
+                  () => Navigator.of(context).pushNamedAndRemoveUntil(baseRoute, (route) => false),
                   textColor: ColorStyle.whiteColor,
                 ),
               ),
