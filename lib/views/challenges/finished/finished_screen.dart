@@ -15,6 +15,14 @@ class FinishedScreen extends StatefulWidget {
 
 class _FinishedScreenState extends State<FinishedScreen> {
   bool _isUnFinished = false;
+  bool _showChallenges = false;
+  @override
+  void initState() {
+    Future.delayed(Duration(milliseconds: 300))
+        .then((value) => setState(() => _showChallenges = true));
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -73,217 +81,220 @@ class _FinishedScreenState extends State<FinishedScreen> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: AnimationConfiguration.toStaggeredList(
-                              childAnimationBuilder: (widget) =>
-                                  FadeInAnimation(
-                                    curve: Curves.decelerate,
-                                    child: SlideAnimation(
-                                        horizontalOffset: 150,
-                                        curve: Curves.decelerate,
-                                        child: widget),
-                                  ),
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  margin: const EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: ColorStyle.blackColor,
+                        child: Visibility(
+                          visible: _showChallenges,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: AnimationConfiguration.toStaggeredList(
+                                childAnimationBuilder: (widget) =>
+                                    FadeInAnimation(
+                                      curve: Curves.decelerate,
+                                      child: SlideAnimation(
+                                          horizontalOffset: 150,
+                                          curve: Curves.decelerate,
+                                          child: widget),
+                                    ),
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    margin: const EdgeInsets.only(bottom: 15),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: ColorStyle.blackColor,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "01:35h",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .primaryTextColor),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                "Time",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                _isUnFinished ? "-100" : "300",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: _isUnFinished
+                                                        ? ColorStyle.red100Color
+                                                        : ColorStyle
+                                                            .primaryColor),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              const Text(
+                                                "Points",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "01:35h",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: ColorStyle
-                                                      .primaryTextColor),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              "Time",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
-                                        ),
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    margin: const EdgeInsets.only(bottom: 15),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: ColorStyle.blackColor,
                                       ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              _isUnFinished ? "-100" : "300",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: _isUnFinished
-                                                      ? ColorStyle.red100Color
-                                                      : ColorStyle
-                                                          .primaryColor),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Text(
-                                              "Points",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "4/4",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .primaryTextColor),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                "Challenges",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  margin: const EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: ColorStyle.blackColor,
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                _isUnFinished ? "-300" : "300",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: _isUnFinished
+                                                        ? ColorStyle.red100Color
+                                                        : ColorStyle
+                                                            .primaryColor),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              const Text(
+                                                "Points",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "4/4",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: ColorStyle
-                                                      .primaryTextColor),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              "Challenges",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
-                                        ),
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    margin: const EdgeInsets.only(bottom: 15),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: ColorStyle.blackColor,
                                       ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              _isUnFinished ? "-300" : "300",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: _isUnFinished
-                                                      ? ColorStyle.red100Color
-                                                      : ColorStyle
-                                                          .primaryColor),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Text(
-                                              "Points",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "36/40",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .primaryTextColor),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                "Quiz questions",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  margin: const EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: ColorStyle.blackColor,
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                _isUnFinished ? "-600" : "300",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: _isUnFinished
+                                                        ? ColorStyle.red100Color
+                                                        : ColorStyle
+                                                            .primaryColor),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              const Text(
+                                                "Points",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 16,
+                                                    color: ColorStyle
+                                                        .black200Color),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "36/40",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: ColorStyle
-                                                      .primaryTextColor),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              "Quiz questions",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              _isUnFinished ? "-600" : "300",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color: _isUnFinished
-                                                      ? ColorStyle.red100Color
-                                                      : ColorStyle
-                                                          .primaryColor),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Text(
-                                              "Points",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 16,
-                                                  color:
-                                                      ColorStyle.black200Color),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ]),
+                                ]),
+                          ),
                         ),
                       ),
                     ),

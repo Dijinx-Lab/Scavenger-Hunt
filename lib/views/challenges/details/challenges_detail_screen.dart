@@ -13,8 +13,11 @@ class ChallengesDetailScreen extends StatefulWidget {
 }
 
 class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
+  bool _showChallenges = false;
   @override
   void initState() {
+    Future.delayed(Duration(milliseconds: 300))
+        .then((value) => setState(() => _showChallenges = true));
     super.initState();
   }
 
@@ -90,19 +93,22 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: AnimationConfiguration.toStaggeredList(
-                        childAnimationBuilder: (widget) => FadeInAnimation(
-                          curve: Curves.decelerate,
-                          child: SlideAnimation(
-                              horizontalOffset: 120,
-                              curve: Curves.decelerate,
-                              child: widget),
+                    child: Visibility(
+                      visible: _showChallenges,
+                      child: Column(
+                        children: AnimationConfiguration.toStaggeredList(
+                          childAnimationBuilder: (widget) => FadeInAnimation(
+                            curve: Curves.decelerate,
+                            child: SlideAnimation(
+                                horizontalOffset: 120,
+                                curve: Curves.decelerate,
+                                child: widget),
+                          ),
+                          children: [
+                            _buildQuestChallengeWidget(),
+                            _buildQuestChallengeWidget()
+                          ],
                         ),
-                        children: [
-                          _buildQuestChallengeWidget(),
-                          _buildQuestChallengeWidget()
-                        ],
                       ),
                     ),
                   ),

@@ -22,9 +22,13 @@ class _MapScreenState extends State<MapScreen> {
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
-            Image.asset(
-              'assets/pngs/mock_map.png',
-              fit: BoxFit.cover,
+            SizedBox(
+              width: double.maxFinite,
+              height: double.maxFinite,
+              child: Image.asset(
+                'assets/pngs/mock_map.png',
+                fit: BoxFit.cover,
+              ),
             ),
             Container(
               height: 150,

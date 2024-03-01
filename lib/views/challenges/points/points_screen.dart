@@ -13,6 +13,14 @@ class PointsScreen extends StatefulWidget {
 }
 
 class _PointsScreenState extends State<PointsScreen> {
+  bool _showChallenges = false;
+  @override
+  void initState() {
+    Future.delayed(Duration(milliseconds: 300))
+        .then((value) => setState(() => _showChallenges = true));
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -61,49 +69,53 @@ class _PointsScreenState extends State<PointsScreen> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: ListView(
-                      children: List.generate(
-                        3,
-                        (index) => AnimationConfiguration.staggeredList(
-                          position: index,
-                          child: FadeInAnimation(
-                              curve: Curves.decelerate,
-                              child: SlideAnimation(
-                                horizontalOffset: 80,
+                    child: Visibility(
+                      visible: _showChallenges,
+                      child: ListView(
+                        children: List.generate(
+                          3,
+                          (index) => AnimationConfiguration.staggeredList(
+                            position: index,
+                            child: FadeInAnimation(
                                 curve: Curves.decelerate,
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  margin: const EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: ColorStyle.cardColor,
-                                    border: Border.all(
-                                      color: ColorStyle.blackColor,
+                                child: SlideAnimation(
+                                  horizontalOffset: 80,
+                                  curve: Curves.decelerate,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    margin: const EdgeInsets.only(bottom: 15),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: ColorStyle.cardColor,
+                                      border: Border.all(
+                                        color: ColorStyle.blackColor,
+                                      ),
+                                    ),
+                                    child: const Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "If David’s age is 27 year old in 2011. What was his age in 200?",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16,
+                                              color:
+                                                  ColorStyle.primaryTextColor),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          "Answer 2",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16,
+                                              color: ColorStyle.primaryColor),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "If David’s age is 27 year old in 2011. What was his age in 200?",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: ColorStyle.primaryTextColor),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        "Answer 2",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: ColorStyle.primaryColor),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )),
+                                )),
+                          ),
                         ),
                       ),
                     ),

@@ -1,4 +1,4 @@
-package com.dijinx.scavenger.scavenger_hunt
+package com.dijinx.scavenger
 
 import io.flutter.embedding.android.FlutterActivity
 

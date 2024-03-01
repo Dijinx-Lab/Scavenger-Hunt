@@ -24,6 +24,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarDividerColor: ColorStyle.whiteColor,
+      systemNavigationBarColor: ColorStyle.whiteColor,
+    ));
     return MaterialApp(
       title: 'Scavenger Hunt',
       debugShowCheckedModeBanner: false,
@@ -38,7 +42,7 @@ class _MyAppState extends State<MyApp> {
         primarySwatch: ColorStyle.primaryMaterialColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: baseRoute,
+      initialRoute: welcomeRoute,
       onGenerateRoute: NavigatorRoutes.allRoutes,
     );
   }
