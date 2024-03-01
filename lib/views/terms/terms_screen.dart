@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/widgets/custom_rounded_button.dart';
+import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class TermsScreen extends StatefulWidget {
   const TermsScreen({super.key});
@@ -45,7 +45,7 @@ class _TermsScreenState extends State<TermsScreen> {
               ),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.only(right: 25, top: 25, bottom: 25),
+                  padding: const EdgeInsets.only(right: 25, top: 25, bottom: 25),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
@@ -57,12 +57,12 @@ class _TermsScreenState extends State<TermsScreen> {
                     trackVisibility: true,
                     thumbColor: ColorStyle.primaryColor,
                     trackColor: ColorStyle.scrollColor,
-                    radius: Radius.circular(6),
+                    radius: const Radius.circular(6),
                     child: SingleChildScrollView(
                       child: Container(
                         width: double.maxFinite,
-                        padding: EdgeInsets.only(left: 25, right: 30),
-                        child: Text(
+                        padding: const EdgeInsets.only(left: 25, right: 30),
+                        child: const Text(
                             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sollicitudin aliquam tincidunt. Cras eget est id neque fermentum tempus. Suspendisse sit amet dignissim neque. Etiam ornare maximus ipsum, non mollis turpis malesuada sit amet. Donec sagittis porta varius. Cras vel convallis justo. Nunc lobortis rhoncus eros, vitae eleifend quam maximus quis. Praesent faucibus nunc eget quam sagittis, ac tempor eros iaculis. Ut rhoncus, ex quis iaculis condimentum, nibh ex laoreet eros, a eleifend eros dui vitae elit. Donec eget tempor felis. Quisque id ligula nibh. Vestibulum nibh mauris, mattis ac nisl at, ultrices pretium lacus. Curabitur dapibus mollis leo. Praesent placerat nisi ac lacinia euismod. Etiam at consectetur nunc. Praesent ac erat felis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Mauris eget orci ac ante consequat pretium. Nunc cursus efficitur aliquet. Vivamus efficitur neque sit amet massa dictum, quis commodo magna tristique. Quisque faucibus, erat vitae tincidunt auctor, purus nunc sollicitudin leo, at finibus massa purus id nunc. Ut sit amet accumsan eros, vehicula mollis arcu. Sed sollicitudin nulla et ipsum ultrices, sed elementum erat convallis. Vestibulum vel ex vitae elit gravida elementum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sollicitudin aliquam tincidunt. Cras eget est id neque fermentum tempus. Suspendisse sit amet dignissim neque. Etiam ornare maximus ipsum, non mollis turpis malesuada sit amet. Donec sagittis porta varius. Cras vel convallis justo. Nunc lobortis rhoncus eros, vitae eleifend quam maximus quis. Praesent faucibus nunc eget quam sagittis, ac tempor eros iaculis. Ut rhoncus, ex quis iaculis condimentum, nibh ex laoreet eros, a eleifend eros dui vitae elit. Donec eget tempor felis. Quisque id ligula nibh. Vestibulum nibh mauris, mattis ac nisl at, ultrices pretium lacus. Curabitur dapibus mollis leo. Praesent placerat nisi ac lacinia euismod. Etiam at consectetur nunc. Praesent ac erat felis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Mauris eget orci ac ante consequat pretium. Nunc cursus efficitur aliquet. Vivamus efficitur neque sit amet massa dictum, quis commodo magna tristique. Quisque faucibus, erat vitae tincidunt auctor, purus nunc sollicitudin leo, at finibus massa purus id nunc. Ut sit amet accumsan eros, vehicula mollis arcu. Sed sollicitudin nulla et ipsum ultrices, sed elementum erat convallis. Vestibulum vel ex vitae elit gravida elementum."),
                       ),
                     ),

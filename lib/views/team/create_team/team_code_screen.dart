@@ -1,11 +1,10 @@
-import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/utility/toast_utils.dart';
-import 'package:scavenger_hunt/widgets/custom_rounded_button.dart';
-import 'package:scavenger_hunt/widgets/custom_text_field.dart';
+import 'package:scavenger_hunt/utility/clipboard_utils.dart';
+import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
+import 'package:scavenger_hunt/widgets/inputs/custom_text_field.dart';
 
 class TeamCodeScreen extends StatefulWidget {
   const TeamCodeScreen({super.key});
@@ -21,12 +20,6 @@ class _TeamCodeScreenState extends State<TeamCodeScreen> {
   void initState() {
     _teamCodeController.text = "5124123";
     super.initState();
-  }
-
-  _copyTextToClipboard() {
-    FlutterClipboard.copy(_teamCodeController.text).then((value) =>
-        ToastUtils.showSnackBar(
-            context, "Code copied to clipboard", "success"));
   }
 
   @override
@@ -112,7 +105,8 @@ class _TeamCodeScreenState extends State<TeamCodeScreen> {
                   controller: _teamCodeController,
                   readOnly: true,
                   trailing: GestureDetector(
-                    onTap: () => _copyTextToClipboard(),
+                    onTap: () => ClipboardUtils.copyToClipboard(
+                        context, _teamCodeController.text),
                     child: SizedBox(
                         width: 90,
                         child: Row(children: [
@@ -124,7 +118,8 @@ class _TeamCodeScreenState extends State<TeamCodeScreen> {
                                 color: ColorStyle.primaryColor),
                           ),
                           IconButton(
-                            onPressed: () => _copyTextToClipboard(),
+                            onPressed: () => ClipboardUtils.copyToClipboard(
+                                context, _teamCodeController.text),
                             icon: SvgPicture.asset(
                               "assets/svgs/ic_copy.svg",
                             ),
@@ -133,7 +128,6 @@ class _TeamCodeScreenState extends State<TeamCodeScreen> {
                         ])),
                   ),
                 ),
-               
                 const Spacer(),
                 SizedBox(
                   height: 60,

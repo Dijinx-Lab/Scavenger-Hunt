@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
+import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/widgets/custom_rounded_button.dart';
+import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 import 'package:video_player/video_player.dart';
 
 class LearnRouteScreen extends StatefulWidget {
-  const LearnRouteScreen({super.key});
+  final LearnArgs args;
+  const LearnRouteScreen({super.key, required this.args});
 
   @override
   State<LearnRouteScreen> createState() => _LearnRouteScreenState();
@@ -47,19 +49,23 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 child: SvgPicture.asset("assets/svgs/ic_location.svg"),
               ),
               const SizedBox(height: 10),
-              const Text(
-                "Learn about your route",
-                style: TextStyle(
+              Text(
+                widget.args.isForFinish
+                    ? "You finish your route!"
+                    : "Learn about your route",
+                style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 24,
                     color: ColorStyle.primaryTextColor),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 child: Text(
-                  "Watch a video and learn more about your route",
+                  widget.args.isForFinish
+                      ? "Watch a video and learn more about summary of your route"
+                      : "Watch a video and learn more about your route",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 16,
                       color: ColorStyle.secondaryTextColor),
@@ -115,11 +121,13 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 height: 60,
                 width: double.infinity,
                 child: CustomRoundedButton(
-                  "Start Journey",
-                  () => Navigator.of(context).pushNamedAndRemoveUntil(baseRoute, (route) => false),
+                  widget.args.isForFinish ? "Finish" : "Start Journey",
+                  () => Navigator.of(context)
+                      .pushNamedAndRemoveUntil(baseRoute, (route) => false),
                   textColor: ColorStyle.whiteColor,
                 ),
               ),
+              const SizedBox(height: 10),
             ],
           ),
         ),

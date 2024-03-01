@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
+import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/views/base/base_screen.dart';
+import 'package:scavenger_hunt/views/challenges/details/challenges_detail_screen.dart';
+import 'package:scavenger_hunt/views/challenges/finished/finished_screen.dart';
+import 'package:scavenger_hunt/views/challenges/points/points_screen.dart';
+import 'package:scavenger_hunt/views/challenges/questions/question_screen.dart';
 import 'package:scavenger_hunt/views/learn/learn_route_screen.dart';
 import 'package:scavenger_hunt/views/team/create_team/create_team_screen.dart';
 import 'package:scavenger_hunt/views/team/create_team/team_code_screen.dart';
@@ -33,17 +38,31 @@ class NavigatorRoutes {
         page = const ProcessingScreen();
         break;
       case learnRouteRoute:
-        page = const LearnRouteScreen();
+        page = LearnRouteScreen(
+          args: settings.arguments as LearnArgs,
+        );
         break;
       case baseRoute:
         page = const BaseScreen();
         break;
-        
+      case challengesRoute:
+        page = const ChallengesDetailScreen();
+        break;
+      case questionsRoute:
+        page = const QuestionScreen();
+        break;
+      case pointsRoute:
+        page = const PointsScreen();
+        break;
+      case finishedRoute:
+        page = const FinishedScreen();
+        break;
+
       default:
         page = const WelcomeScreen();
         break;
     }
 
-    return MaterialPageRoute(builder: (_) => page);
+    return MaterialPageRoute(settings: settings, builder: (_) => page);
   }
 }

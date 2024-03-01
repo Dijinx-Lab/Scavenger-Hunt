@@ -30,14 +30,15 @@ class _MyAppState extends State<MyApp> {
       navigatorObservers: [FlutterSmartDialog.observer],
       builder: FlutterSmartDialog.init(),
       theme: ThemeData(
-        useMaterial3: false,
+        useMaterial3: true,
         primaryColor: ColorStyle.primaryColor,
         fontFamily: "Helvetica Now Display",
         canvasColor: ColorStyle.backgroundColor,
+        colorScheme: ColorStyle.appScheme,
         primarySwatch: ColorStyle.primaryMaterialColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: welcomeRoute,
+      initialRoute: baseRoute,
       onGenerateRoute: NavigatorRoutes.allRoutes,
     );
   }

@@ -14,6 +14,19 @@ class ColorStyle {
     900: Color.fromRGBO(63, 106, 201, 1),
   };
 
+  static const ColorScheme appScheme = ColorScheme(
+            brightness: Brightness.light,
+            background: ColorStyle.backgroundColor,
+            primary: ColorStyle.primaryColor,
+            onPrimary: ColorStyle.whiteColor,
+            secondary: ColorStyle.primaryColor,
+            onSecondary: ColorStyle.whiteColor,
+            error: ColorStyle.red100Color,
+            onError: ColorStyle.whiteColor,
+            onBackground: ColorStyle.primaryTextColor,
+            surface: ColorStyle.backgroundColor,
+            onSurface: ColorStyle.primaryTextColor);
+
   static MaterialColor primaryMaterialColor =
       const MaterialColor(0xFF3F6AC9, customSwatchColor);
 
@@ -28,6 +41,8 @@ class ColorStyle {
   static const red100Color = Color(0xFFD41615);
   static const grey100Color = Color(0xFFF1EDE7);
   static const scrollColor = Color(0xFFEFEFEF);
+  static const greyTextColor = Color(0xFF939393);
+  static const cardColor = Color(0xFFF1EDE7);
 
   static const whiteColor = Color(0xFFFFFFFF);
   static const blackColor = Color(0xFF000000);

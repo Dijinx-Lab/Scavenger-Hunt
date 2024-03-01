@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/widgets/custom_rounded_button.dart';
+import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -64,6 +64,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   textColor: ColorStyle.whiteColor,
                 ),
               ),
+              const SizedBox(height: 10),
             ],
           ),
         ),
