@@ -16,7 +16,7 @@ class _PointsScreenState extends State<PointsScreen> {
   bool _showChallenges = false;
   @override
   void initState() {
-    Future.delayed(Duration(milliseconds: 300))
+    Future.delayed(const Duration(milliseconds: 300))
         .then((value) => setState(() => _showChallenges = true));
     super.initState();
   }

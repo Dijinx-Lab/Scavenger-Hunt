@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/widgets/bottom_sheets/map_point_sheet.dart';
 import 'package:scavenger_hunt/widgets/bottom_sheets/quest_details_sheet.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
+import 'dart:math' show cos, sin, sqrt, pow;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -14,6 +18,87 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   bool isQuestActive = false;
+  bool showMap = false;
+  // Mapbox related
+  late LatLng latLng;
+  late CameraPosition _initialCameraPosition;
+  late MapboxMapController controller;
+  List<Map> carouselData = [];
+  Symbol? myLocationSymbol;
+
+  @override
+  void initState() {
+    super.initState();
+
+    latLng = LatLng(PrefUtil().lastLatitude, PrefUtil().lastLongitude);
+    print('LATLNG: $latLng');
+    _initialCameraPosition = CameraPosition(target: latLng, zoom: 16);
+    Future.delayed(const Duration(milliseconds: 400))
+        .then((value) => setState(() {
+              showMap = true;
+            }));
+  }
+
+  _onMapCreated(MapboxMapController controller) async {
+    this.controller = controller;
+    controller.onSymbolTapped.add(_onSymbolTapped);
+  }
+
+  void _onSymbolTapped(Symbol symbol) {
+    // Handle symbol tap here
+    _openBottomSheet(context, const MapPointSheet());
+    // You can perform any action you want when a symbol is tapped
+  }
+
+  void _addCurrentLocationMarker() {
+    final symbolOptions = SymbolOptions(
+      geometry: latLng,
+      iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
+      zIndex: 1,
+    );
+    controller.addSymbol(symbolOptions).then((symbol) {
+      setState(() {
+        myLocationSymbol = symbol;
+      });
+    });
+    _addMarkersAroundCurrentLocation();
+  }
+
+  void _addMarkersAroundCurrentLocation() {
+    const double radius = 200.0; // 200 meters
+    const double degree = 80; // angle between markers
+    const double radiusInDegree = radius / 111000; // 1 degree = 111 km
+
+    for (int i = 0; i < 4; i++) {
+      final double angle = degree * i;
+      final double dx = radiusInDegree * cos(angle);
+      final double dy = radiusInDegree * sin(angle);
+      final double newLat = latLng.latitude + dy;
+      final double newLng = latLng.longitude + dx;
+      if (i == 3) {
+        controller.addSymbol(SymbolOptions(
+            geometry: LatLng(newLat, newLng),
+            iconImage: 'assets/pngs/map_pucs/completed_challenge_puc.png',
+            zIndex: 1));
+      } else if (i == 2) {
+        controller.addSymbol(SymbolOptions(
+            geometry: LatLng(newLat, newLng),
+            iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
+            zIndex: 1));
+      } else if (i == 1) {
+        controller.addSymbol(SymbolOptions(
+            geometry: LatLng(newLat, newLng),
+            iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
+            zIndex: 1));
+      } else {
+        controller.addSymbol(SymbolOptions(
+            geometry: LatLng(newLat, newLng),
+            iconImage: 'assets/pngs/map_pucs/challenge_puc.png',
+            zIndex: 1));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -22,14 +107,41 @@ class _MapScreenState extends State<MapScreen> {
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
-            SizedBox(
-              width: double.maxFinite,
-              height: double.maxFinite,
-              child: Image.asset(
-                'assets/pngs/mock_map.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+            !showMap
+                ? Container()
+                : AnimatedOpacity(
+                    opacity: !showMap ? 0 : 1,
+                    duration: Durations.long4,
+                    child: SizedBox(
+                      width: double.maxFinite,
+                      height: double.maxFinite,
+                      child: MapboxMap(
+                        accessToken: dotenv.env['MAPBOX_ACCESS_TOKEN'],
+                        initialCameraPosition: _initialCameraPosition,
+                        onMapCreated: _onMapCreated,
+                        onStyleLoadedCallback: _addCurrentLocationMarker,
+                        myLocationTrackingMode:
+                            MyLocationTrackingMode.TrackingGPS,
+                        minMaxZoomPreference:
+                            const MinMaxZoomPreference(14, 17),
+                        onUserLocationUpdated: (location) {
+                          PrefUtil().setLastLatitude =
+                              location.position.latitude;
+                          PrefUtil().setLastLongitude =
+                              location.position.longitude;
+                          if (myLocationSymbol != null) {
+                            final changes = SymbolOptions(geometry: latLng);
+                            controller.updateSymbol(myLocationSymbol!, changes);
+                            controller.animateCamera(
+                              CameraUpdate.newCameraPosition(
+                                CameraPosition(target: location.position),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
             Container(
               height: 150,
               decoration: BoxDecoration(
@@ -43,27 +155,27 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ),
             ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      _openBottomSheet(context, const MapPointSheet());
-                    },
-                    child: const Text("Mock map point button"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        isQuestActive = !isQuestActive;
-                      });
-                    },
-                    child: const Text("Mock quest started state"),
-                  ),
-                ],
-              ),
-            ),
+            // Center(
+            //   child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       TextButton(
+            //         onPressed: () {
+            //           _openBottomSheet(context, const MapPointSheet());
+            //         },
+            //         child: const Text("Mock map point button"),
+            //       ),
+            //       TextButton(
+            //         onPressed: () {
+            //           setState(() {
+            //             isQuestActive = !isQuestActive;
+            //           });
+            //         },
+            //         child: const Text("Mock quest started state"),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             Padding(
               padding: EdgeInsets.only(
                   left: 25, right: 25, top: MediaQuery.of(context).padding.top),
@@ -93,6 +205,34 @@ class _MapScreenState extends State<MapScreen> {
                         color: ColorStyle.secondaryTextColor),
                   ),
                 ],
+              ),
+            ),
+
+            Positioned(
+              bottom: 130,
+              right: 15,
+              child: GestureDetector(
+                onTap: () {
+                  controller.animateCamera(
+                    CameraUpdate.newCameraPosition(_initialCameraPosition),
+                  );
+                  setState(() {});
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ColorStyle.whiteColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset('assets/svgs/ic_location_light.svg'),
+                      const SizedBox(height: 10),
+                      SvgPicture.asset('assets/svgs/ic_target.svg'),
+                    ],
+                  ),
+                ),
               ),
             ),
             Align(

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:location/location.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 import 'package:video_player/video_player.dart';
 
@@ -15,6 +18,7 @@ class LearnRouteScreen extends StatefulWidget {
 }
 
 class _LearnRouteScreenState extends State<LearnRouteScreen> {
+  bool isButtonLoading = false;
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
 
@@ -34,6 +38,48 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void initializeLocationAndSave() async {
+    setState(() {
+      isButtonLoading = true;
+    });
+    // Ensure all permissions are collected for Locations
+    Location location = Location();
+    bool? serviceEnabled;
+    PermissionStatus? permissionGranted;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+    }
+
+    // Get capture the current user location
+    print('here');
+    LocationData locationData = await location.getLocation();
+    print('here');
+
+    // Store the user location in sharedPreferences
+    PrefUtil().setLastLatitude = locationData.latitude!;
+    PrefUtil().setLastLongitude = locationData.longitude!;
+
+    // // Get and store the directions API response in sharedPreferences
+    // for (int i = 0; i < restaurants.length; i++) {
+    //   Map modifiedResponse = await getDirectionsAPIResponse(currentLatLng, i);
+    //   saveDirectionsAPIResponse(i, json.encode(modifiedResponse));
+    // }
+    if (mounted) {
+      setState(() {
+        isButtonLoading = false;
+      });
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(baseRoute, (route) => false);
+    }
   }
 
   @override
@@ -59,7 +105,8 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                     color: ColorStyle.primaryTextColor),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 child: Text(
                   widget.args.isForFinish
                       ? "Watch a video and learn more about summary of your route"
@@ -121,10 +168,33 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 height: 60,
                 width: double.infinity,
                 child: CustomRoundedButton(
-                  widget.args.isForFinish ? "Finish" : "Start Journey",
-                  () => Navigator.of(context)
-                      .pushNamedAndRemoveUntil(baseRoute, (route) => false),
+                  "",
+                  () => initializeLocationAndSave(),
                   textColor: ColorStyle.whiteColor,
+                  widgetButton: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      isButtonLoading
+                          ? const SizedBox(
+                              height: 25,
+                              width: 25,
+                              child: CircularProgressIndicator(
+                                color: ColorStyle.whiteColor,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              widget.args.isForFinish
+                                  ? "Finish"
+                                  : "Start Journey",
+                              style: const TextStyle(
+                                  height: 1.2,
+                                  fontSize: 16,
+                                  color: ColorStyle.whiteColor,
+                                  fontWeight: FontWeight.w500),
+                            )
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 10),

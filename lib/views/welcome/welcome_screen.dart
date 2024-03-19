@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';

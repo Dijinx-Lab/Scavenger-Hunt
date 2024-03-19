@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>MBXAccessToken</key>
+	<string>pk.eyJ1IjoiYW5kcmV5aG1hcmEiLCJhIjoiY2x0cGgzYmU2MGp6OTJsbWhlYTN2NmRidCJ9.cNHYe6ysX6ATOD2WQ7Lxpg</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We want access to your location to actively place you in the play area on the map</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
