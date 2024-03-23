@@ -122,6 +122,7 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
                     textColor: ColorStyle.whiteColor,
                   ),
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

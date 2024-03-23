@@ -1,16 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:scavenger_hunt/models/api/base/base_response.dart';
+import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_directions.dart';
+import 'package:scavenger_hunt/services/direction_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class MapPointSheet extends StatefulWidget {
-  const MapPointSheet({super.key});
+  final LatLng source;
+  final LatLng dest;
+  const MapPointSheet({super.key, required this.source, required this.dest});
 
   @override
   State<MapPointSheet> createState() => _MapPointSheetState();
 }
 
 class _MapPointSheetState extends State<MapPointSheet> {
+  late DirectionService directionService;
+  late LatLng source;
+  late LatLng dest;
+  bool isLoading = false;
+
+  @override
+  initState() {
+    directionService = DirectionService();
+    source = widget.source;
+    dest = widget.dest;
+    super.initState();
+  }
+
+  _getNavigationData() async {
+    setState(() {
+      isLoading = true;
+    });
+    BaseResponse directionsResponse =
+        await DirectionService().getDirections(source, dest);
+    if (directionsResponse.error == null) {
+      MapBoxDirection directions =
+          directionsResponse.snapshot as MapBoxDirection;
+      if (mounted) {
+        Navigator.of(context).pop(directions);
+      }
+    } else {
+      // ToastUtils.showSnackBar(
+      //     context, "Could not get navigations at this moment", "fail");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -77,11 +114,24 @@ class _MapPointSheetState extends State<MapPointSheet> {
           SizedBox(
             height: 60,
             width: double.infinity,
-            child: CustomRoundedButton(
-              "Start",
-              () => (),
-              textColor: ColorStyle.whiteColor,
-            ),
+            child: CustomRoundedButton("", () => _getNavigationData(),
+                widgetButton: isLoading
+                    ? const SizedBox(
+                        height: 25,
+                        width: 25,
+                        child: CircularProgressIndicator(
+                          color: ColorStyle.whiteColor,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Start",
+                        style: TextStyle(
+                            height: 1.2,
+                            fontSize: 16,
+                            color: ColorStyle.whiteColor,
+                            fontWeight: FontWeight.w500),
+                      )),
           ),
           const SizedBox(height: 10),
         ],

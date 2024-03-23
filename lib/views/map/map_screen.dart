@@ -1,15 +1,20 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_directions.dart';
+import 'package:scavenger_hunt/models/events/stop_quest/stop_quest.dart';
+import 'package:scavenger_hunt/models/events/symbol_tapped/symbol_tapped.dart';
+import 'package:scavenger_hunt/services/map_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/widgets/bottom_sheets/map_point_sheet.dart';
 import 'package:scavenger_hunt/widgets/bottom_sheets/quest_details_sheet.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
-import 'dart:math' show cos, sin, sqrt, pow;
 
 class MapScreen extends StatefulWidget {
+  static final eventBus = EventBus();
   const MapScreen({super.key});
 
   @override
@@ -20,83 +25,74 @@ class _MapScreenState extends State<MapScreen> {
   bool isQuestActive = false;
   bool showMap = false;
   // Mapbox related
-  late LatLng latLng;
-  late CameraPosition _initialCameraPosition;
-  late MapboxMapController controller;
-  List<Map> carouselData = [];
-  Symbol? myLocationSymbol;
+  late MapService mapService;
+  LatLng? liveLocation;
 
   @override
   void initState() {
-    super.initState();
-
-    latLng = LatLng(PrefUtil().lastLatitude, PrefUtil().lastLongitude);
-    print('LATLNG: $latLng');
-    _initialCameraPosition = CameraPosition(target: latLng, zoom: 16);
-    Future.delayed(const Duration(milliseconds: 400))
+    mapService = MapService(PrefUtil().lastLatitude, PrefUtil().lastLongitude);
+    mapService.startUpdatingLocation((newPosition) {
+      liveLocation = newPosition;
+    });
+    Future.delayed(const Duration(milliseconds: 100))
         .then((value) => setState(() {
               showMap = true;
             }));
+    super.initState();
+    MapScreen.eventBus.on<SymbolTapped>().listen((event) => _handleSymbolTap());
+    MapScreen.eventBus.on<StopQuest>().listen((event) => _handleQuestStop());
   }
 
-  _onMapCreated(MapboxMapController controller) async {
-    this.controller = controller;
-    controller.onSymbolTapped.add(_onSymbolTapped);
-  }
-
-  void _onSymbolTapped(Symbol symbol) {
-    // Handle symbol tap here
-    _openBottomSheet(context, const MapPointSheet());
-    // You can perform any action you want when a symbol is tapped
-  }
-
-  void _addCurrentLocationMarker() {
-    final symbolOptions = SymbolOptions(
-      geometry: latLng,
-      iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
-      zIndex: 1,
-    );
-    controller.addSymbol(symbolOptions).then((symbol) {
-      setState(() {
-        myLocationSymbol = symbol;
-      });
+  _handleQuestStop() async {
+    await mapService.removeNavigationRoute();
+    setState(() {
+      isQuestActive = false;
     });
-    _addMarkersAroundCurrentLocation();
   }
 
-  void _addMarkersAroundCurrentLocation() {
-    const double radius = 200.0; // 200 meters
-    const double degree = 80; // angle between markers
-    const double radiusInDegree = radius / 111000; // 1 degree = 111 km
+  _handleNavigationDataToPolylines(MapBoxDirection directions) async {
+    await mapService.addNavigationRoute(directions);
+    setState(() {
+      isQuestActive = true;
+    });
+  }
 
-    for (int i = 0; i < 4; i++) {
-      final double angle = degree * i;
-      final double dx = radiusInDegree * cos(angle);
-      final double dy = radiusInDegree * sin(angle);
-      final double newLat = latLng.latitude + dy;
-      final double newLng = latLng.longitude + dx;
-      if (i == 3) {
-        controller.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/completed_challenge_puc.png',
-            zIndex: 1));
-      } else if (i == 2) {
-        controller.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
-            zIndex: 1));
-      } else if (i == 1) {
-        controller.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
-            zIndex: 1));
-      } else {
-        controller.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/challenge_puc.png',
-            zIndex: 1));
-      }
+  _handleSymbolTap() {
+    if (!isQuestActive) {
+      _openBottomSheet(
+          context,
+          MapPointSheet(
+            source: mapService.currPosition,
+            dest: mapService.selectedSymbol!.options.geometry!,
+          ), (MapBoxDirection? directions) async {
+        if (directions != null) {
+          _handleNavigationDataToPolylines(directions);
+        }
+      });
+    } else {
+      _openQuestSheet();
     }
+  }
+
+  _openQuestSheet() async {
+    List<double> distances = await mapService.getDistanceDetails();
+    if (mounted) {
+      _openBottomSheet(
+          context,
+          QuestDetailsSheet(
+            currentDistance: distances[0],
+            totalDistance: distances[1],
+          ), (bool? continueNavigation) async {
+        if (continueNavigation != null && !continueNavigation) {
+          _handleQuestStop();
+        }
+      });
+    }
+  }
+
+  _addCurrentLocationMarker() async {
+    await mapService.addCurrentLocationMarker();
+    setState(() {});
   }
 
   @override
@@ -117,28 +113,16 @@ class _MapScreenState extends State<MapScreen> {
                       height: double.maxFinite,
                       child: MapboxMap(
                         accessToken: dotenv.env['MAPBOX_ACCESS_TOKEN'],
-                        initialCameraPosition: _initialCameraPosition,
-                        onMapCreated: _onMapCreated,
+                        initialCameraPosition: mapService.initialCameraPosition,
+                        onMapCreated: mapService.onMapCreated,
                         onStyleLoadedCallback: _addCurrentLocationMarker,
-                        myLocationTrackingMode:
-                            MyLocationTrackingMode.TrackingGPS,
+                        styleString: "assets/jsons/style.json",
+                        myLocationEnabled: true,
+                        myLocationRenderMode: MyLocationRenderMode.COMPASS,
+                        myLocationTrackingMode: MyLocationTrackingMode.Tracking,
                         minMaxZoomPreference:
                             const MinMaxZoomPreference(14, 17),
-                        onUserLocationUpdated: (location) {
-                          PrefUtil().setLastLatitude =
-                              location.position.latitude;
-                          PrefUtil().setLastLongitude =
-                              location.position.longitude;
-                          if (myLocationSymbol != null) {
-                            final changes = SymbolOptions(geometry: latLng);
-                            controller.updateSymbol(myLocationSymbol!, changes);
-                            controller.animateCamera(
-                              CameraUpdate.newCameraPosition(
-                                CameraPosition(target: location.position),
-                              ),
-                            );
-                          }
-                        },
+                        onUserLocationUpdated: (location) {},
                       ),
                     ),
                   ),
@@ -155,6 +139,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ),
             ),
+
             // Center(
             //   child: Column(
             //     mainAxisAlignment: MainAxisAlignment.center,
@@ -209,13 +194,11 @@ class _MapScreenState extends State<MapScreen> {
             ),
 
             Positioned(
-              bottom: 130,
+              bottom: isQuestActive ? 300 : 130,
               right: 15,
               child: GestureDetector(
                 onTap: () {
-                  controller.animateCamera(
-                    CameraUpdate.newCameraPosition(_initialCameraPosition),
-                  );
+                  mapService.resetCameraPosition(isQuestActive);
                   setState(() {});
                 },
                 child: Container(
@@ -302,8 +285,7 @@ class _MapScreenState extends State<MapScreen> {
                       height: 30,
                       child: CustomRoundedButton(
                         "View",
-                        () => _openBottomSheet(
-                            context, const QuestDetailsSheet()),
+                        () => _openQuestSheet(),
                         roundedCorners: 40,
                         textSize: 12,
                         leftPadding: 20,
@@ -329,8 +311,9 @@ class _MapScreenState extends State<MapScreen> {
         ));
   }
 
-  void _openBottomSheet(BuildContext context, Widget sheet) async {
-    await showModalBottomSheet(
+  void _openBottomSheet(
+      BuildContext context, Widget sheet, Function onReturn) async {
+    dynamic sheetResponse = await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -342,5 +325,8 @@ class _MapScreenState extends State<MapScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) => sheet,
     );
+    if (sheetResponse != null) {
+      onReturn(sheetResponse);
+    }
   }
 }

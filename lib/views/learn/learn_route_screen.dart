@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:location/location.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
+import 'package:scavenger_hunt/models/events/stop_quest/stop_quest.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
+import 'package:scavenger_hunt/views/map/map_screen.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 import 'package:video_player/video_player.dart';
 
@@ -40,6 +41,11 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
     super.dispose();
   }
 
+  _popToMap() {
+    MapScreen.eventBus.fire(StopQuest());
+    Navigator.of(context).popUntil((route) => route.settings.name == baseRoute);
+  }
+
   void initializeLocationAndSave() async {
     setState(() {
       isButtonLoading = true;
@@ -60,9 +66,8 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
     }
 
     // Get capture the current user location
-    print('here');
+
     LocationData locationData = await location.getLocation();
-    print('here');
 
     // Store the user location in sharedPreferences
     PrefUtil().setLastLatitude = locationData.latitude!;
@@ -169,7 +174,9 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 width: double.infinity,
                 child: CustomRoundedButton(
                   "",
-                  () => initializeLocationAndSave(),
+                  () => widget.args.isForFinish
+                      ? _popToMap()
+                      : initializeLocationAndSave(),
                   textColor: ColorStyle.whiteColor,
                   widgetButton: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

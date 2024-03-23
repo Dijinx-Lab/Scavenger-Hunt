@@ -47,6 +47,7 @@ android {
     }
 
     defaultConfig {
+       
         multiDexEnabled true
 
         applicationId "com.dijinx.scavenger"
@@ -79,5 +80,6 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
-//    implementation 'com.mapbox.maps:android:11.2.1'
+    // implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+    // implementation 'com.mapbox.maps:android:11.2.1'
 }

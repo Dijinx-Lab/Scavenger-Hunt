@@ -253,6 +253,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
                     textColor: ColorStyle.whiteColor,
                   ),
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

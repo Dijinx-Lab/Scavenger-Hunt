@@ -130,6 +130,7 @@ class _PointsScreenState extends State<PointsScreen> {
                     textColor: ColorStyle.whiteColor,
                   ),
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),
