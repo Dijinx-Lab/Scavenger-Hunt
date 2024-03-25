@@ -1,6 +1,9 @@
 package com.dijinx.scavenger
 
-import io.flutter.embedding.android.FlutterFragmentActivity
+import android.os.Build
+import android.os.Bundle
+import androidx.core.view.WindowCompat
+import io.flutter.embedding.android.FlutterActivity
 
-class MainActivity: FlutterFragmentActivity() {
+class MainActivity: FlutterActivity() {
 }

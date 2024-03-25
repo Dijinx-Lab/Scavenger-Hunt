@@ -15,9 +15,10 @@ import 'package:scavenger_hunt/views/map/map_screen.dart';
 class MapService {
   late LatLng currPosition;
   late CameraPosition initialCameraPosition;
-  late MapboxMapController controller;
+  MapboxMapController? controller;
 
-  //Symbol? myLocationSymbol;
+  bool isPlatformIos = Platform.isIOS;
+  Symbol? myLocationSymbol;
   List<Symbol> challengesSymbols = [];
   Symbol? selectedSymbol;
   Location location = Location();
@@ -42,28 +43,30 @@ class MapService {
   }
 
   void resetCameraPosition(bool routeActive) {
+    if (controller == null) return;
     if (routeActive) {
-      controller.animateCamera(
+      controller!.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(target: currPosition, zoom: 17),
         ),
       );
     } else {
-      controller.animateCamera(
+      controller!.animateCamera(
         CameraUpdate.newCameraPosition(initialCameraPosition),
       );
     }
   }
 
   Future<void> removeMarkersAndAddDestPuc() async {
+    if (controller == null) return;
     List<Symbol> symbolsToRemove = challengesSymbols
         .where((element) => element.id != selectedSymbol!.id)
         .toList();
-    await controller.removeSymbols(symbolsToRemove);
+    await controller!.removeSymbols(symbolsToRemove);
 
     challengesSymbols
         .removeWhere((element) => element.id != selectedSymbol!.id);
-    controller.updateSymbol(
+    controller!.updateSymbol(
       selectedSymbol!,
       SymbolOptions(
           geometry: selectedSymbol!.options.geometry,
@@ -71,24 +74,28 @@ class MapService {
           zIndex: 1),
     );
 
-    controller.animateCamera(CameraUpdate.newCameraPosition(
+    controller!.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(target: currPosition, zoom: 17)));
   }
 
   Future<void> addCurrentLocationMarker() async {
-    // final symbolOptions = SymbolOptions(
-    //   geometry: currPosition,
-    //   iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
-    //   zIndex: 1,
-    // );
+    if (controller == null) return;
+    if (!isPlatformIos) {
+      final symbolOptions = SymbolOptions(
+        geometry: currPosition,
+        iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
+        zIndex: 1,
+      );
 
-    // Symbol symbol = await controller.addSymbol(symbolOptions);
-    // myLocationSymbol = symbol;
+      Symbol symbol = await controller!.addSymbol(symbolOptions);
+      myLocationSymbol = symbol;
+    }
 
     await addMarkersAroundCurrentLocation();
   }
 
   Future<void> addMarkersAroundCurrentLocation() async {
+    if (controller == null) return;
     const double radius = 200.0; // 200 meters
     const double degree = 80; // angle between markers
     const double radiusInDegree = radius / 111000; // 1 degree = 111 km
@@ -101,22 +108,22 @@ class MapService {
       final double newLng = currPosition.longitude + dx;
       Symbol symbol;
       if (i == 3) {
-        symbol = await controller.addSymbol(SymbolOptions(
+        symbol = await controller!.addSymbol(SymbolOptions(
             geometry: LatLng(newLat, newLng),
             iconImage: 'assets/pngs/map_pucs/completed_challenge_puc.png',
             zIndex: 1));
       } else if (i == 2) {
-        symbol = await controller.addSymbol(SymbolOptions(
+        symbol = await controller!.addSymbol(SymbolOptions(
             geometry: LatLng(newLat, newLng),
             iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
             zIndex: 1));
       } else if (i == 1) {
-        symbol = await controller.addSymbol(SymbolOptions(
+        symbol = await controller!.addSymbol(SymbolOptions(
             geometry: LatLng(newLat, newLng),
             iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
             zIndex: 1));
       } else {
-        symbol = await controller.addSymbol(SymbolOptions(
+        symbol = await controller!.addSymbol(SymbolOptions(
             geometry: LatLng(newLat, newLng),
             iconImage: 'assets/pngs/map_pucs/challenge_puc.png',
             zIndex: 1));
@@ -125,21 +132,30 @@ class MapService {
     }
   }
 
-  void startUpdatingLocation(Function(LatLng updatedPosition) onUpdate) {
+  void startUpdatingLocation(Function(LatLng updatedPosition) onUpdate) async {
     location.changeSettings(
-        accuracy: Platform.isAndroid
+        accuracy: !isPlatformIos
             ? LocationAccuracy.high
             : LocationAccuracy.navigation,
         interval: 5000,
         distanceFilter: 5);
     location.onLocationChanged
         .distinct()
-        .listen((LocationData currentLocation) {
+        .listen((LocationData currentLocation) async {
+      if (controller == null) return;
       LatLng newLatLng =
           LatLng(currentLocation.latitude!, currentLocation.longitude!);
 
       currPosition = newLatLng;
 
+      if (!isPlatformIos) {
+        final symbolOptions = SymbolOptions(
+          geometry: currPosition,
+          iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
+          zIndex: 1,
+        );
+        await controller!.updateSymbol(myLocationSymbol!, symbolOptions);
+      }
       if (isRouteActive) {
         updateRoute();
       }
@@ -147,6 +163,7 @@ class MapService {
   }
 
   void updateRoute() async {
+    if (controller == null) return;
     BaseResponse directionsResponse = await DirectionService()
         .getDirections(currPosition, selectedSymbol!.options.geometry!);
     if (directionsResponse.error == null) {
@@ -156,10 +173,10 @@ class MapService {
         List<LatLng> routePoints =
             decodePolyline(directions.routes![0].geometry!);
         // Clear existing route and draw new one
-        await controller.removeLine(routeLine!);
+        await controller!.removeLine(routeLine!);
         addImageFromAsset("assetImage", "assets/pngs/line_pattern.png");
 
-        routeLine = await controller.addLine(
+        routeLine = await controller!.addLine(
           LineOptions(
             geometry: routePoints,
             lineColor: "#3F6AC9",
@@ -192,35 +209,38 @@ class MapService {
   }
 
   Future<void> addImageFromAsset(String name, String assetName) async {
+    if (controller == null) return;
     final ByteData bytes = await rootBundle.load(assetName);
     final Uint8List list = bytes.buffer.asUint8List();
-    return controller.addImage(name, list);
+    return controller!.addImage(name, list);
   }
 
   Future<void> removeNavigationRoute() async {
+    if (controller == null) return;
     //REMOVE ROUTE LINE
-    print(routeLine);
-    controller.removeLine(routeLine!);
+
+    controller!.removeLine(routeLine!);
     routeLine = null;
     //REMOVE DEST MARKER
-    print(challengesSymbols.first);
-    controller.removeSymbol(challengesSymbols.first);
+
+    controller!.removeSymbol(challengesSymbols.first);
     challengesSymbols.clear();
     selectedSymbol = null;
     startingRoutePosition = null;
     //DISABLE THE ROUTE STATE
     isRouteActive = false;
     await addMarkersAroundCurrentLocation();
-    controller.animateCamera(CameraUpdate.newCameraPosition(
+    controller!.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(target: currPosition, zoom: 16)));
   }
 
   Future<void> addNavigationRoute(MapBoxDirection directions) async {
+    if (controller == null) return;
     isRouteActive = true;
     startingRoutePosition = currPosition;
     addImageFromAsset("assetImage", "assets/pngs/line_pattern.png");
     List<LatLng> routePoints = decodePolyline(directions.routes![0].geometry!);
-    routeLine = await controller.addLine(
+    routeLine = await controller!.addLine(
       LineOptions(
         geometry: routePoints,
         lineColor: "#3F6AC9",

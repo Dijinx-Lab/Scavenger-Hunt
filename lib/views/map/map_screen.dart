@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -27,6 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   // Mapbox related
   late MapService mapService;
   LatLng? liveLocation;
+  bool isPlatformIos = Platform.isIOS;
 
   @override
   void initState() {
@@ -105,27 +108,49 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             !showMap
                 ? Container()
-                : AnimatedOpacity(
-                    opacity: !showMap ? 0 : 1,
-                    duration: Durations.long4,
-                    child: SizedBox(
-                      width: double.maxFinite,
-                      height: double.maxFinite,
-                      child: MapboxMap(
-                        accessToken: dotenv.env['MAPBOX_ACCESS_TOKEN'],
-                        initialCameraPosition: mapService.initialCameraPosition,
-                        onMapCreated: mapService.onMapCreated,
-                        onStyleLoadedCallback: _addCurrentLocationMarker,
-                        styleString: "assets/jsons/style.json",
-                        myLocationEnabled: true,
-                        myLocationRenderMode: MyLocationRenderMode.COMPASS,
-                        myLocationTrackingMode: MyLocationTrackingMode.Tracking,
-                        minMaxZoomPreference:
-                            const MinMaxZoomPreference(14, 17),
-                        onUserLocationUpdated: (location) {},
+                : isPlatformIos
+                    ? AnimatedOpacity(
+                        opacity: !showMap ? 0 : 1,
+                        duration: Durations.long4,
+                        child: SizedBox(
+                          width: double.maxFinite,
+                          height: double.maxFinite,
+                          child: MapboxMap(
+                            accessToken: dotenv.env['MAPBOX_ACCESS_TOKEN'],
+                            initialCameraPosition:
+                                mapService.initialCameraPosition,
+                            onMapCreated: mapService.onMapCreated,
+                            onStyleLoadedCallback: _addCurrentLocationMarker,
+                            styleString: "assets/jsons/style.json",
+                            myLocationEnabled: true,
+                            myLocationRenderMode: MyLocationRenderMode.COMPASS,
+                            myLocationTrackingMode:
+                                MyLocationTrackingMode.Tracking,
+                            minMaxZoomPreference:
+                                const MinMaxZoomPreference(14, 17),
+                            onUserLocationUpdated: (location) {},
+                          ),
+                        ),
+                      )
+                    : AnimatedOpacity(
+                        opacity: !showMap ? 0 : 1,
+                        duration: Durations.long4,
+                        child: SizedBox(
+                          width: double.maxFinite,
+                          height: double.maxFinite,
+                          child: MapboxMap(
+                            accessToken: dotenv.env['MAPBOX_ACCESS_TOKEN'],
+                            initialCameraPosition:
+                                mapService.initialCameraPosition,
+                            onMapCreated: mapService.onMapCreated,
+                            onStyleLoadedCallback: _addCurrentLocationMarker,
+                            styleString: "assets/jsons/style.json",
+                            minMaxZoomPreference:
+                                const MinMaxZoomPreference(14, 17),
+                            onUserLocationUpdated: (location) {},
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
             Container(
               height: 150,
               decoration: BoxDecoration(
