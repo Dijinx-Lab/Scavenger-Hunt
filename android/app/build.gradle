@@ -80,6 +80,10 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.android.gms:play-services-location:21.2.0'
+    // implementation 'com.github.niqo01.rxplayservices:rx-play-services-location:0.4.0'
+    // api 'com.google.android.gms:play-services-location:20.0.0'
+
     // implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
     // implementation 'com.mapbox.maps:android:11.2.1'
 }

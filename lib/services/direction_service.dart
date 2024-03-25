@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:scavenger_hunt/keys/endpoint_keys.dart';
@@ -9,7 +7,8 @@ import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_direct
 
 class DirectionService {
   String directionsMode = 'walking';
-  String accessToken = dotenv.env['MAPBOX_ACCESS_TOKEN']!;
+  String accessToken =
+      'pk.eyJ1IjoiYW5kcmV5aG1hcmEiLCJhIjoiY2x0cGgzYmU2MGp6OTJsbWhlYTN2NmRidCJ9.cNHYe6ysX6ATOD2WQ7Lxpg';
   Future<BaseResponse> getDirections(
     LatLng source,
     LatLng dest,

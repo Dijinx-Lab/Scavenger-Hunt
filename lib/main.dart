@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/routes/navigator_routes.dart';
@@ -12,7 +11,6 @@ void main() async {
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   await PrefUtil().init();
-  await dotenv.load(fileName: "assets/config/.env");
 
   runApp(const MyApp());
 }

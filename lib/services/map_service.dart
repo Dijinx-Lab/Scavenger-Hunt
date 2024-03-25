@@ -17,13 +17,14 @@ class MapService {
   late CameraPosition initialCameraPosition;
   late MapboxMapController controller;
 
-  //Symbol? myLocationSymbol;
+  Symbol? myLocationSymbol;
   List<Symbol> challengesSymbols = [];
   Symbol? selectedSymbol;
   Location location = Location();
   bool isRouteActive = false;
   Line? routeLine;
   LatLng? startingRoutePosition;
+  bool isPlatformIos = Platform.isIOS;
 
   MapService(double lastLatitude, double lastLongitude) {
     currPosition = LatLng(lastLatitude, lastLongitude);
@@ -76,14 +77,16 @@ class MapService {
   }
 
   Future<void> addCurrentLocationMarker() async {
-    // final symbolOptions = SymbolOptions(
-    //   geometry: currPosition,
-    //   iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
-    //   zIndex: 1,
-    // );
+    if (!isPlatformIos) {
+      final symbolOptions = SymbolOptions(
+        geometry: currPosition,
+        iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
+        zIndex: 1,
+      );
 
-    // Symbol symbol = await controller.addSymbol(symbolOptions);
-    // myLocationSymbol = symbol;
+      Symbol symbol = await controller.addSymbol(symbolOptions);
+      myLocationSymbol = symbol;
+    }
 
     await addMarkersAroundCurrentLocation();
   }
@@ -125,21 +128,29 @@ class MapService {
     }
   }
 
-  void startUpdatingLocation(Function(LatLng updatedPosition) onUpdate) {
+  void startUpdatingLocation(Function(LatLng updatedPosition) onUpdate) async {
     location.changeSettings(
-        accuracy: Platform.isAndroid
+        accuracy: !isPlatformIos
             ? LocationAccuracy.high
             : LocationAccuracy.navigation,
         interval: 5000,
         distanceFilter: 5);
     location.onLocationChanged
         .distinct()
-        .listen((LocationData currentLocation) {
+        .listen((LocationData currentLocation) async {
       LatLng newLatLng =
           LatLng(currentLocation.latitude!, currentLocation.longitude!);
 
       currPosition = newLatLng;
 
+      if (!isPlatformIos) {
+        final symbolOptions = SymbolOptions(
+          geometry: currPosition,
+          iconImage: 'assets/pngs/map_pucs/my_location_puc.png',
+          zIndex: 1,
+        );
+        await controller.updateSymbol(myLocationSymbol!, symbolOptions);
+      }
       if (isRouteActive) {
         updateRoute();
       }
