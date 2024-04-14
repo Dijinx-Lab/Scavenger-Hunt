@@ -15,17 +15,18 @@ class ColorStyle {
   };
 
   static const ColorScheme appScheme = ColorScheme(
-            brightness: Brightness.light,
-            background: ColorStyle.backgroundColor,
-            primary: ColorStyle.primaryColor,
-            onPrimary: ColorStyle.whiteColor,
-            secondary: ColorStyle.primaryColor,
-            onSecondary: ColorStyle.whiteColor,
-            error: ColorStyle.red100Color,
-            onError: ColorStyle.whiteColor,
-            onBackground: ColorStyle.primaryTextColor,
-            surface: ColorStyle.backgroundColor,
-            onSurface: ColorStyle.primaryTextColor);
+      surfaceTint: ColorStyle.whiteColor,
+      brightness: Brightness.light,
+      background: ColorStyle.backgroundColor,
+      primary: ColorStyle.primaryColor,
+      onPrimary: ColorStyle.whiteColor,
+      secondary: ColorStyle.primaryColor,
+      onSecondary: ColorStyle.whiteColor,
+      error: ColorStyle.red100Color,
+      onError: ColorStyle.whiteColor,
+      onBackground: ColorStyle.primaryTextColor,
+      surface: ColorStyle.backgroundColor,
+      onSurface: ColorStyle.primaryTextColor);
 
   static MaterialColor primaryMaterialColor =
       const MaterialColor(0xFF3F6AC9, customSwatchColor);
@@ -43,6 +44,8 @@ class ColorStyle {
   static const scrollColor = Color(0xFFEFEFEF);
   static const greyTextColor = Color(0xFF939393);
   static const cardColor = Color(0xFFF1EDE7);
+  static const jumbleColor = Color(0xFF3E87FF);
+  static Color shadowColor = const Color(0xFF626976).withOpacity(0.15);
 
   static const whiteColor = Color(0xFFFFFFFF);
   static const blackColor = Color(0xFF000000);

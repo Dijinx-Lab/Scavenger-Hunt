@@ -1,16 +1,27 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/api/base/base_response.dart';
+import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
+import 'package:scavenger_hunt/models/api/generic/generic_response.dart';
 import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_directions.dart';
+import 'package:scavenger_hunt/services/challenge_service.dart';
 import 'package:scavenger_hunt/services/direction_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class MapPointSheet extends StatefulWidget {
+  final Challenge challenge;
   final LatLng source;
   final LatLng dest;
-  const MapPointSheet({super.key, required this.source, required this.dest});
+  const MapPointSheet(
+      {super.key,
+      required this.source,
+      required this.dest,
+      required this.challenge});
 
   @override
   State<MapPointSheet> createState() => _MapPointSheetState();
@@ -20,10 +31,12 @@ class _MapPointSheetState extends State<MapPointSheet> {
   late DirectionService directionService;
   late LatLng source;
   late LatLng dest;
+  late Challenge challenge;
   bool isLoading = false;
 
   @override
   initState() {
+    challenge = widget.challenge;
     directionService = DirectionService();
     source = widget.source;
     dest = widget.dest;
@@ -31,6 +44,17 @@ class _MapPointSheetState extends State<MapPointSheet> {
   }
 
   _getNavigationData() async {
+    if (PrefUtil().currentRoute!.timings!.endTime != null) {
+      OkCancelResult result = await showOkCancelAlertDialog(
+          context: context,
+          message: "Your team has already taken part in the this hunt",
+          okLabel: 'Ok',
+          cancelLabel: 'View Summary');
+      if (result == OkCancelResult.cancel && mounted) {
+        Navigator.of(context).popAndPushNamed(finishedRoute);
+      }
+      return;
+    }
     setState(() {
       isLoading = true;
     });
@@ -40,11 +64,33 @@ class _MapPointSheetState extends State<MapPointSheet> {
       MapBoxDirection directions =
           directionsResponse.snapshot as MapBoxDirection;
       if (mounted) {
-        Navigator.of(context).pop(directions);
+        bool isServerInformed = await _informServer();
+        setState(() {
+          isLoading = false;
+        });
+        if (isServerInformed && mounted) {
+          Navigator.of(context).pop(directions);
+        }
       }
     } else {
-      // ToastUtils.showSnackBar(
-      //     context, "Could not get navigations at this moment", "fail");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _informServer() async {
+    BaseResponse toggleActiveApi = await ChallengeService()
+        .toggleActiveStatus(PrefUtil().currentTeam!.teamCode!, challenge.id!);
+    if (toggleActiveApi.error == null) {
+      GenericResponse response = toggleActiveApi.snapshot as GenericResponse;
+      if (response.success ?? false) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 
@@ -62,52 +108,68 @@ class _MapPointSheetState extends State<MapPointSheet> {
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: SvgPicture.asset(
-                          "assets/svgs/ic_back.svg",
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: SvgPicture.asset(
+                  "assets/svgs/ic_back.svg",
+                ),
+                visualDensity: VisualDensity.compact,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      challenge.name ?? "",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 24,
+                          color: ColorStyle.primaryTextColor),
+                    ),
+                    Row(
+                      children: [
+                        const Text(
+                          "Current points: ",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
+                              color: ColorStyle.secondaryTextColor),
                         ),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      const Text(
-                        "Bigfoot",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 24,
-                            color: ColorStyle.primaryTextColor),
-                      ),
-                    ],
-                  ),
-                  _buildInfoWidget()
-                ],
+                        Text(
+                          "${PrefUtil().currentTeam!.score ?? 0}",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
+                              color: ColorStyle.primaryColor),
+                        ),
+                      ],
+                    ),
+                    _buildInfoWidget()
+                  ],
+                ),
               ),
               Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Image.asset(
-                    "assets/pngs/mini_map.png",
-                    fit: BoxFit.contain,
-                  ),
+                padding: const EdgeInsets.only(right: 10),
+                child: Image.asset(
+                  'assets/pngs/mini_map.png',
+                  height: 70,
+                  width: 70,
                 ),
               )
             ],
           ),
           const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Image.asset(
-              "assets/pngs/quest_road.png",
-              fit: BoxFit.contain,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+              challenge.description ?? "",
+              style: const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
+                  color: ColorStyle.secondaryTextColor),
             ),
           ),
           const SizedBox(height: 40),
@@ -140,96 +202,73 @@ class _MapPointSheetState extends State<MapPointSheet> {
   }
 
   _buildInfoWidget() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                "Current points: ",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 16,
-                    color: ColorStyle.secondaryTextColor),
-              ),
-              Text(
-                "300",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 16,
-                    color: ColorStyle.primaryColor),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Row(
-            children: [
-              Text(
-                "Time: ",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.outline100Color),
-              ),
-              Text(
-                "1.30h",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.primaryColor),
-              ),
-            ],
-          ),
-          SizedBox(height: 6),
-          Row(
-            children: [
-              Text(
-                "Difficulty: ",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.outline100Color),
-              ),
-              Text(
-                "Medium",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.primaryColor),
-              ),
-            ],
-          ),
-          SizedBox(height: 6),
-          Row(
-            children: [
-              Text(
-                "Challenges: ",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.outline100Color),
-              ),
-              Text(
-                "13",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                    color: ColorStyle.primaryColor),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            const Text(
+              "Points: ",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.outline100Color),
+            ),
+            Text(
+              "${challenge.totalScore ?? 0}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.primaryColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Text(
+              "Difficulty: ",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.outline100Color),
+            ),
+            Text(
+              challenge.difficulty ?? "",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.primaryColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Text(
+              "Challenges: ",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.outline100Color),
+            ),
+            Text(
+              '${challenge.questions ?? 0}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorStyle.primaryColor),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

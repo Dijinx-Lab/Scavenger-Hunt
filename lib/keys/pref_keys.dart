@@ -1,2 +1,9 @@
 const String currentLatitude = 'latitude';
 const String currentLongitude = 'logitude';
+const String team = 'team';
+const String route = 'routes';
+const String teamJoined = 'team-joined';
+const String routeStartTime = 'route-end-time';
+const String mapShown = 'map-shown';
+const String locationImportanceShown = 'location-importance-shown';
+const String lastNotifAction = 'last-notification-action';

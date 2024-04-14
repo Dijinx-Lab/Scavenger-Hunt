@@ -5,10 +5,14 @@ import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:scavenger_hunt/models/api/base/base_response.dart';
+import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
 import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_directions.dart';
+import 'package:scavenger_hunt/models/api/route/route/route.dart';
+import 'package:scavenger_hunt/models/events/start_quest/start_quest.dart';
 import 'package:scavenger_hunt/models/events/symbol_tapped/symbol_tapped.dart';
 import 'package:scavenger_hunt/services/direction_service.dart';
-import 'dart:math' show cos, sin, sqrt, pow;
+import 'package:scavenger_hunt/utility/pref_utils.dart';
+import 'dart:math';
 
 import 'package:scavenger_hunt/views/map/map_screen.dart';
 
@@ -57,15 +61,25 @@ class MapService {
     }
   }
 
+  void focusFirstLocation() {
+    if (controller == null) return;
+    controller!.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+            target: challengesSymbols.first.options.geometry!, zoom: 17),
+      ),
+    );
+  }
+
   Future<void> removeMarkersAndAddDestPuc() async {
     if (controller == null) return;
     List<Symbol> symbolsToRemove = challengesSymbols
         .where((element) => element.id != selectedSymbol!.id)
         .toList();
     await controller!.removeSymbols(symbolsToRemove);
-
     challengesSymbols
         .removeWhere((element) => element.id != selectedSymbol!.id);
+
     controller!.updateSymbol(
       selectedSymbol!,
       SymbolOptions(
@@ -91,44 +105,72 @@ class MapService {
       myLocationSymbol = symbol;
     }
 
-    await addMarkersAroundCurrentLocation();
+    await addChallengesMarkers();
   }
 
-  Future<void> addMarkersAroundCurrentLocation() async {
+  Future<void> addChallengesMarkers() async {
     if (controller == null) return;
-    const double radius = 200.0; // 200 meters
-    const double degree = 80; // angle between markers
-    const double radiusInDegree = radius / 111000; // 1 degree = 111 km
+    RouteDetails routeDetails = PrefUtil().currentRoute!;
+    List<Challenge> pendingChallenges = routeDetails.pendingChallenges ?? [];
+    List<Challenge> completedChallenges =
+        routeDetails.completedChallenges ?? [];
+    Challenge? activeChallenge = routeDetails.activeChallenge;
 
-    for (int i = 0; i < 4; i++) {
-      final double angle = degree * i;
-      final double dx = radiusInDegree * cos(angle);
-      final double dy = radiusInDegree * sin(angle);
-      final double newLat = currPosition.latitude + dy;
-      final double newLng = currPosition.longitude + dx;
-      Symbol symbol;
-      if (i == 3) {
-        symbol = await controller!.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/completed_challenge_puc.png',
-            zIndex: 1));
-      } else if (i == 2) {
-        symbol = await controller!.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
-            zIndex: 1));
-      } else if (i == 1) {
-        symbol = await controller!.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
-            zIndex: 1));
-      } else {
-        symbol = await controller!.addSymbol(SymbolOptions(
-            geometry: LatLng(newLat, newLng),
-            iconImage: 'assets/pngs/map_pucs/challenge_puc.png',
-            zIndex: 1));
-      }
+    for (Challenge challenge in pendingChallenges) {
+      Symbol symbol = await controller!.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(challenge.latitude!, challenge.longitude!),
+          iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
+          zIndex: 1,
+        ),
+        {
+          'challengeDetails': challenge,
+        },
+      );
       challengesSymbols.add(symbol);
+    }
+    for (Challenge challenge in completedChallenges) {
+      Symbol symbol = await controller!.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(challenge.latitude!, challenge.longitude!),
+          iconImage: 'assets/pngs/map_pucs/completed_challenge_puc.png',
+          zIndex: 1,
+        ),
+        {
+          'challengeDetails': challenge,
+        },
+      );
+      challengesSymbols.add(symbol);
+    }
+
+    if (routeDetails.finishLineLat != null &&
+        routeDetails.finishLineLong != null) {
+      Symbol symbol = await controller!.addSymbol(
+        SymbolOptions(
+          geometry:
+              LatLng(routeDetails.finishLineLat!, routeDetails.finishLineLong!),
+          iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
+          zIndex: 1,
+        ),
+      );
+      challengesSymbols.add(symbol);
+    }
+
+    if (activeChallenge != null) {
+      Symbol symbol = await controller!.addSymbol(
+        SymbolOptions(
+          geometry:
+              LatLng(activeChallenge.latitude!, activeChallenge.longitude!),
+          iconImage: 'assets/pngs/map_pucs/active_challenge_puc.png',
+          zIndex: 1,
+        ),
+        {
+          'challengeDetails': activeChallenge,
+        },
+      );
+      challengesSymbols.add(symbol);
+      selectedSymbol = symbol;
+      getNavigationData();
     }
   }
 
@@ -208,6 +250,19 @@ class MapService {
     return [distanceFromStartingPoint, totalDistance];
   }
 
+  Future<bool> getIsCloseToTarget() async {
+    LatLng target = challengesSymbols.first.options.geometry!;
+    LatLng curr = currPosition;
+
+    double distance =
+        DistanceCalculator.calculateDistance(currPosition, target);
+    return distance <= 10;
+  }
+
+  Challenge getActiveChallenge() {
+    return challengesSymbols.first.data!['challengeDetails'];
+  }
+
   Future<void> addImageFromAsset(String name, String assetName) async {
     if (controller == null) return;
     final ByteData bytes = await rootBundle.load(assetName);
@@ -229,7 +284,7 @@ class MapService {
     startingRoutePosition = null;
     //DISABLE THE ROUTE STATE
     isRouteActive = false;
-    await addMarkersAroundCurrentLocation();
+    await addChallengesMarkers();
     controller!.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(target: currPosition, zoom: 16)));
   }
@@ -280,4 +335,45 @@ class MapService {
     }
     return points;
   }
+
+  getNavigationData() async {
+    BaseResponse directionsResponse = await DirectionService()
+        .getDirections(currPosition, selectedSymbol!.options.geometry!);
+    if (directionsResponse.error == null) {
+      MapBoxDirection directions =
+          directionsResponse.snapshot as MapBoxDirection;
+      await addNavigationRoute(directions);
+      MapScreen.eventBus.fire(StartQuest());
+    }
+  }
+}
+
+class DistanceCalculator {
+  static const double earthRadius = 6371000; // in meters
+
+  static double degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
+  static double calculateDistance(LatLng point1, LatLng point2) {
+    double lat1 = degreesToRadians(point1.latitude);
+    double lon1 = degreesToRadians(point1.longitude);
+    double lat2 = degreesToRadians(point2.latitude);
+    double lon2 = degreesToRadians(point2.longitude);
+
+    double dLat = lat2 - lat1;
+    double dLon = lon2 - lon1;
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1) * cos(lat2) * sin(dLon / 2) * sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+}
+
+Future<bool> getIsCloseToTarget(LatLng currPosition, LatLng target) async {
+  double distance = DistanceCalculator.calculateDistance(currPosition, target);
+  return distance <= 20;
 }

@@ -1,12 +1,11 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:location/location.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
-import 'package:scavenger_hunt/models/events/stop_quest/stop_quest.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
-import 'package:scavenger_hunt/views/map/map_screen.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 import 'package:video_player/video_player.dart';
 
@@ -42,48 +41,67 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
   }
 
   _popToMap() {
-    MapScreen.eventBus.fire(StopQuest());
     Navigator.of(context).popUntil((route) => route.settings.name == baseRoute);
   }
 
-  void initializeLocationAndSave() async {
-    setState(() {
-      isButtonLoading = true;
-    });
-    // Ensure all permissions are collected for Locations
-    Location location = Location();
-    bool? serviceEnabled;
-    PermissionStatus? permissionGranted;
+  _showPermissionsOff() async {
+    if (mounted) {
+      OkCancelResult result = await showOkAlertDialog(
+          context: context,
+          title: 'Locations',
+          okLabel: "Retry",
+          message:
+              "Your locations are turned off. Please turn on your location permissions from settings to take part in the Scavenger Hunt");
+      if (result == OkCancelResult.ok && mounted) {
+        Navigator.of(context).popAndPushNamed(processingRoute);
+      }
+    }
+  }
 
+  _showConfirmationDialog() async {
+    if (mounted) {
+      if (PrefUtil().currentRoute?.timings == null) {
+        OkCancelResult result = await showOkCancelAlertDialog(
+            context: context,
+            okLabel: "Start",
+            cancelLabel: "Cancel",
+            isDestructiveAction: true,
+            message:
+                "You are about to start the scavenger hunt. You'll have ${PrefUtil().currentRoute!.totalTime!} minutes to complete as many challenges as you can");
+        if (result == OkCancelResult.ok && mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(baseRoute, (route) => false);
+        }
+      } else {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(baseRoute, (route) => false);
+      }
+    }
+  }
+
+  _checkLocationAndGoMap() async {
+    PermissionStatus? permissionGranted;
+    bool? serviceEnabled;
+    Location location = Location();
     serviceEnabled = await location.serviceEnabled();
+
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
     }
 
     permissionGranted = await location.hasPermission();
+
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
     }
+    if (permissionGranted == PermissionStatus.deniedForever) {
+      _showPermissionsOff();
+    }
 
-    // Get capture the current user location
-
-    LocationData locationData = await location.getLocation();
-
-    // Store the user location in sharedPreferences
-    PrefUtil().setLastLatitude = locationData.latitude!;
-    PrefUtil().setLastLongitude = locationData.longitude!;
-
-    // // Get and store the directions API response in sharedPreferences
-    // for (int i = 0; i < restaurants.length; i++) {
-    //   Map modifiedResponse = await getDirectionsAPIResponse(currentLatLng, i);
-    //   saveDirectionsAPIResponse(i, json.encode(modifiedResponse));
-    // }
-    if (mounted) {
-      setState(() {
-        isButtonLoading = false;
-      });
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(baseRoute, (route) => false);
+    if (permissionGranted == PermissionStatus.granted &&
+        (serviceEnabled) &&
+        mounted) {
+      _showConfirmationDialog();
     }
   }
 
@@ -174,32 +192,23 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 width: double.infinity,
                 child: CustomRoundedButton(
                   "",
-                  () => widget.args.isForFinish
-                      ? _popToMap()
-                      : initializeLocationAndSave(),
+                  () {
+                    widget.args.isForFinish
+                        ? _popToMap()
+                        : _checkLocationAndGoMap();
+                  },
                   textColor: ColorStyle.whiteColor,
                   widgetButton: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      isButtonLoading
-                          ? const SizedBox(
-                              height: 25,
-                              width: 25,
-                              child: CircularProgressIndicator(
-                                color: ColorStyle.whiteColor,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              widget.args.isForFinish
-                                  ? "Finish"
-                                  : "Start Journey",
-                              style: const TextStyle(
-                                  height: 1.2,
-                                  fontSize: 16,
-                                  color: ColorStyle.whiteColor,
-                                  fontWeight: FontWeight.w500),
-                            )
+                      Text(
+                        widget.args.isForFinish ? "Finish" : "Start Journey",
+                        style: const TextStyle(
+                            height: 1.2,
+                            fontSize: 16,
+                            color: ColorStyle.whiteColor,
+                            fontWeight: FontWeight.w500),
+                      )
                     ],
                   ),
                 ),

@@ -32,6 +32,15 @@
 	<string>We want access to your location to actively place you in the play area on the map</string>
 	<key>io.flutter.embedded_views_preview</key>
     <true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Needed to allow user to upload pictures for their challenges</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Needed to allow user to upload pictures for their challenges</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

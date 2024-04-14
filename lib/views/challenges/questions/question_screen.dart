@@ -1,18 +1,171 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:image/image.dart' as Img;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
+import 'package:scavenger_hunt/models/api/answer/answer_response.dart';
+import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
+import 'package:scavenger_hunt/models/api/generic/generic_response.dart';
+import 'package:scavenger_hunt/models/api/question/question/question.dart';
+import 'package:scavenger_hunt/models/api/team/team_response/team_response.dart';
+import 'package:scavenger_hunt/models/arguments/question_args.dart';
+import 'package:scavenger_hunt/models/events/answer_submitted/answer_submitted.dart';
+import 'package:scavenger_hunt/models/events/refresh_leaderboards/refresh_leaderboards.dart';
+import 'package:scavenger_hunt/models/events/submit_question/submit_question.dart';
+import 'package:scavenger_hunt/services/challenge_service.dart';
+import 'package:scavenger_hunt/services/team_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
+import 'package:scavenger_hunt/utility/toast_utils.dart';
+import 'package:scavenger_hunt/views/challenges/details/challenges_detail_screen.dart';
+import 'package:scavenger_hunt/views/challenges/questions/binary/binary_widget.dart';
+import 'package:scavenger_hunt/views/challenges/questions/mcq/mcq_widget.dart';
+import 'package:scavenger_hunt/views/challenges/questions/picture/picture_widget.dart';
+import 'package:scavenger_hunt/views/challenges/questions/slider/slider_widget.dart';
+import 'package:scavenger_hunt/views/challenges/questions/word_jumble/word_jumble_widget.dart';
+import 'package:scavenger_hunt/views/leaderboard/leaderboard_screen.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class QuestionScreen extends StatefulWidget {
-  const QuestionScreen({super.key});
+  final QuestionArgs arguments;
+  const QuestionScreen({super.key, required this.arguments});
 
   @override
   State<QuestionScreen> createState() => _QuestionScreenState();
 }
 
 class _QuestionScreenState extends State<QuestionScreen> {
-  String _selectedAnswer = "";
+  late Challenge challenge;
+  List<Question> questions = [];
+  late ChallengeService challengeService;
+  int stepperIndex = 0;
+  bool isValidToProceed = false;
+  bool isSubmitted = false;
+  List<Widget> steps = [];
+  dynamic currentAnswer;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    challengeService = ChallengeService();
+    challenge = widget.arguments.challenge;
+    questions = widget.arguments.questions ?? [];
+    stepperIndex = widget.arguments.selectedIndex;
+    steps = _getStepsList();
+    super.initState();
+  }
+
+  _getStepsList() {
+    List<Widget> widgets = [];
+    for (Question question in questions) {
+      switch (question.type) {
+        case "mcq":
+          {
+            widgets.add(McqWidget(
+                question: question,
+                onDataFilled: (answer, validation) =>
+                    _childDataFilled(answer, validation)));
+            break;
+          }
+        case "picture":
+          {
+            widgets.add(PictureWidget(
+                question: question,
+                onDataFilled: (answer, validation) =>
+                    _childDataFilled(answer, validation)));
+            break;
+          }
+        case "binary":
+          {
+            widgets.add(BinaryWidget(
+                question: question,
+                onDataFilled: (answer, validation) =>
+                    _childDataFilled(answer, validation)));
+            break;
+          }
+        case "slider":
+          {
+            widgets.add(SliderWidget(
+                question: question,
+                onDataFilled: (answer, validation) =>
+                    _childDataFilled(answer, validation)));
+            break;
+          }
+        case "wordjumble":
+          {
+            widgets.add(WordJumbleWidget(
+                question: question,
+                onDataFilled: (answer, validation) =>
+                    _childDataFilled(answer, validation)));
+            break;
+          }
+      }
+    }
+    return widgets;
+  }
+
+  _getCurrentTitle() {
+    switch (questions[stepperIndex].type) {
+      case "mcq":
+        {
+          return "Choose an answer";
+        }
+      case "picture":
+        {
+          return "Taking pictures";
+        }
+      case "binary":
+        {
+          return "True Or False";
+        }
+      case "slider":
+        {
+          return "Pick an answer";
+        }
+      case "wordjumble":
+        {
+          return "Form the answer";
+        }
+    }
+  }
+
+  _getCurrentSubText() {
+    switch (questions[stepperIndex].type) {
+      case "mcq":
+        {
+          return "Answer a question and move to next one";
+        }
+      case "picture":
+        {
+          return "Take a picture and move to next one";
+        }
+      case "binary":
+        {
+          return "Choose true or false and move to next one";
+        }
+      case "slider":
+        {
+          return "Pick the answer by dragging the slider";
+        }
+      case "wordjumble":
+        {
+          return "Spell out the answer by tapping the letters";
+        }
+    }
+  }
+
+  _childDataFilled(dynamic answer, bool validation) {
+    setState(() {
+      if (validation) {
+        currentAnswer = answer;
+      }
+      isValidToProceed = validation;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -29,27 +182,28 @@ class _QuestionScreenState extends State<QuestionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
                       icon: SvgPicture.asset(
                         "assets/svgs/ic_back.svg",
                       ),
                       visualDensity: VisualDensity.compact,
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "History of science",
-                            style: TextStyle(
+                            _getCurrentTitle(),
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 24,
                                 color: ColorStyle.primaryTextColor),
                           ),
                           Text(
-                            "Answer a question and move to next one",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                            _getCurrentSubText(),
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 16,
                                 color: ColorStyle.secondaryTextColor),
@@ -57,11 +211,11 @@ class _QuestionScreenState extends State<QuestionScreen> {
                         ],
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(right: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10),
                       child: Text(
-                        "1/10",
-                        style: TextStyle(
+                        "${stepperIndex + 1}/${steps.length}",
+                        style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 24,
                             color: ColorStyle.primaryTextColor),
@@ -73,184 +227,51 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 300,
-                            padding: const EdgeInsets.all(20),
-                            margin: const EdgeInsets.only(bottom: 15),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: ColorStyle.blackColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            "If David’s age is 27 year old in 2011. What was his age in 200?",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 24,
-                                color: ColorStyle.primaryTextColor),
-                          ),
-                          const SizedBox(height: 15),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedAnswer = "1";
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
-                                    decoration: BoxDecoration(
-                                      color: _selectedAnswer == "1"
-                                          ? ColorStyle.primaryColor
-                                          : ColorStyle.cardColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: ColorStyle.blackColor,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "Answer 1",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: _selectedAnswer == '1'
-                                                ? ColorStyle.whiteColor
-                                                : ColorStyle.primaryTextColor),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedAnswer = "2";
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
-                                    decoration: BoxDecoration(
-                                      color: _selectedAnswer == "2"
-                                          ? ColorStyle.primaryColor
-                                          : ColorStyle.cardColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: ColorStyle.blackColor,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "Answer 1",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: _selectedAnswer == '2'
-                                                ? ColorStyle.whiteColor
-                                                : ColorStyle.primaryTextColor),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 15),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedAnswer = "3";
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
-                                    decoration: BoxDecoration(
-                                      color: _selectedAnswer == "3"
-                                          ? ColorStyle.primaryColor
-                                          : ColorStyle.cardColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: ColorStyle.blackColor,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "Answer 1",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: _selectedAnswer == '3'
-                                                ? ColorStyle.whiteColor
-                                                : ColorStyle.primaryTextColor),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedAnswer = "4";
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
-                                    decoration: BoxDecoration(
-                                      color: _selectedAnswer == "4"
-                                          ? ColorStyle.primaryColor
-                                          : ColorStyle.cardColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: ColorStyle.blackColor,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "Answer 1",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16,
-                                            color: _selectedAnswer == '4'
-                                                ? ColorStyle.whiteColor
-                                                : ColorStyle.primaryTextColor),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
+                    child: steps[stepperIndex],
                   ),
                 ),
                 SizedBox(
                   height: 60,
                   width: double.infinity,
                   child: CustomRoundedButton(
-                    "Continue",
-                    () => Navigator.of(context).pushNamed(pointsRoute),
-                    textColor: ColorStyle.whiteColor,
+                    "",
+                    () => _saveAnswer(),
+                    widgetButton: isLoading
+                        ? const SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              color: ColorStyle.whiteColor,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : isSubmitted
+                            ? Text(
+                                "Continue",
+                                style: TextStyle(
+                                    height: 1.2,
+                                    fontSize: 16,
+                                    color: isValidToProceed
+                                        ? ColorStyle.whiteColor
+                                        : ColorStyle.primaryColor,
+                                    fontWeight: FontWeight.w500),
+                              )
+                            : Text(
+                                "Submit",
+                                style: TextStyle(
+                                    height: 1.2,
+                                    fontSize: 16,
+                                    color: isValidToProceed
+                                        ? ColorStyle.whiteColor
+                                        : ColorStyle.primaryColor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                    buttonBackgroundColor: isValidToProceed
+                        ? ColorStyle.primaryColor
+                        : ColorStyle.whiteColor,
+                    borderColor: isValidToProceed
+                        ? ColorStyle.whiteColor
+                        : ColorStyle.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -260,5 +281,157 @@ class _QuestionScreenState extends State<QuestionScreen> {
         ),
       ),
     );
+  }
+
+  String? base64Image(String imagePath) {
+    List<int> imageBytes = File(imagePath).readAsBytesSync();
+
+    Img.Image? image = Img.decodeImage(Uint8List.fromList(imageBytes));
+
+    if (image != null) {
+      String base64Image =
+          base64Encode(Uint8List.fromList(Img.encodeJpg(image)));
+
+      String extension = imagePath.split('.').last;
+
+      String base64ImageWithExtension =
+          'data:image/$extension;base64,$base64Image';
+
+      return base64ImageWithExtension;
+    }
+    return null;
+  }
+
+  _saveAnswer() async {
+    if (isSubmitted) {
+      if (!areAllAnswersNonNull()) {
+        setState(() {
+          stepperIndex = nextQuestionIndexWithNullAnswer(stepperIndex);
+          isSubmitted = false;
+          isValidToProceed = false;
+        });
+      } else {
+        Navigator.of(context).pushNamed(pointsRoute,
+            arguments: QuestionArgs(challenge: challenge));
+      }
+    } else {
+      setState(() {
+        isLoading = true;
+      });
+      if (questions[stepperIndex].type == "picture") {
+        currentAnswer =
+            await challengeService.getUploadUrl(currentAnswer, 'answers');
+      }
+      challengeService
+          .submitAnswer(currentAnswer, questions[stepperIndex].id!,
+              PrefUtil().currentTeam!.teamCode!)
+          .then((value) {
+        setState(() {
+          isLoading = false;
+        });
+        if (value.error == null) {
+          AnswerResponse apiResponse = value.snapshot;
+          if (apiResponse.success ?? false) {
+            if (isValidToProceed) {
+              questions[stepperIndex].submittedAnswer =
+                  apiResponse.data?.answer;
+              _refreshTeamData();
+              _notifyChild();
+
+              setState(() {
+                isSubmitted = true;
+              });
+            }
+          } else {
+            ToastUtils.showCustomSnackbar(
+              context: context,
+              contentText: apiResponse.message ?? "",
+              icon: const Icon(
+                Icons.cancel_outlined,
+                color: ColorStyle.whiteColor,
+              ),
+            );
+          }
+        } else {
+          ToastUtils.showCustomSnackbar(
+            context: context,
+            contentText: value.error ?? "",
+            icon: const Icon(
+              Icons.cancel_outlined,
+              color: ColorStyle.whiteColor,
+            ),
+          );
+        }
+      });
+    }
+  }
+
+  int nextQuestionIndexWithNullAnswer(int currentIndex) {
+    int nextIndex = (currentIndex + 1) % questions.length;
+
+    if (questions[currentIndex].submittedAnswer == null && nextIndex == 0) {
+      return currentIndex;
+    }
+
+    while (questions[nextIndex].submittedAnswer != null) {
+      nextIndex = (nextIndex + 1) % questions.length;
+
+      if (nextIndex == currentIndex) {
+        return -1;
+      }
+    }
+
+    return nextIndex;
+  }
+
+  bool areAllAnswersNonNull() {
+    for (var question in questions) {
+      if (question.submittedAnswer == null) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  _notifyChild() {
+    switch (questions[stepperIndex].type) {
+      case "mcq":
+        {
+          McqWidget.eventBus.fire(AnswerSubmitted());
+          break;
+        }
+      case "picture":
+        {
+          PictureWidget.eventBus.fire(AnswerSubmitted());
+          break;
+        }
+      case "binary":
+        {
+          BinaryWidget.eventBus.fire(AnswerSubmitted());
+          break;
+        }
+      case "slider":
+        {
+          SliderWidget.eventBus.fire(AnswerSubmitted());
+          break;
+        }
+      case "wordjumble":
+        {
+          WordJumbleWidget.eventBus.fire(AnswerSubmitted());
+          break;
+        }
+    }
+  }
+
+  _refreshTeamData() async {
+    TeamService().joinTeam(PrefUtil().currentTeam!.teamCode!).then((value) {
+      if (value.error == null) {
+        TeamResponse apiResponse = value.snapshot;
+        if (apiResponse.success ?? false) {
+          PrefUtil().currentTeam = apiResponse.data?.team;
+        } else {}
+      } else {}
+    });
   }
 }

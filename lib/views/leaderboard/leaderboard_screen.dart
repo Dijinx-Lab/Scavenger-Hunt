@@ -1,11 +1,18 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:scavenger_hunt/models/leaderboard_entry.dart';
+import 'package:scavenger_hunt/models/api/team/list_response/team_list_response.dart';
+import 'package:scavenger_hunt/models/api/team/team/team.dart';
+import 'package:scavenger_hunt/models/events/refresh_leaderboards/refresh_leaderboards.dart';
+import 'package:scavenger_hunt/services/team_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/utility/avatar_utils.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
+import 'package:scavenger_hunt/utility/toast_utils.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class LeaderboardScreen extends StatefulWidget {
+  static final eventBus = EventBus();
   const LeaderboardScreen({super.key});
 
   @override
@@ -14,11 +21,23 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final ScrollController _scrollController = ScrollController();
+  late TeamService teamService;
   String myScorePosition = "";
+  List<Team> teams = [];
+  bool isLoading = false;
 
   @override
   void initState() {
-    _scrollController.addListener(() => _checkElementPosition(12));
+    teamService = TeamService();
+    _getLeaderboard();
+
+    LeaderboardScreen.eventBus.on<RefreshLeaderboards>().listen((event) {
+      if (mounted) {
+        _getLeaderboard();
+      }
+    });
+    _scrollController.addListener(() => _checkElementPosition(teams
+        .indexWhere((element) => element.id == PrefUtil().currentTeam!.id)));
     super.initState();
   }
 
@@ -50,32 +69,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     } else {
       myScorePosition = 'in view';
     }
+
     setState(() {});
   }
 
-  List<LeaderboardEntry> _getLeaderboardEntries() {
-    return [
-      LeaderboardEntry("Wild Cats", "100", "U+1F482", "#E1DDD8"),
-      LeaderboardEntry("Common Thiefs", "97", "U+1F3CB", "#E1DDD8"),
-      LeaderboardEntry("Running Shoes", "96", "U+1F38F", "#E1DDD8"),
-      LeaderboardEntry("Triple team", "92", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Solos", "87", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Duos", "85", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Flex", "80", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Running Shoes", "78", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Triple team", "74", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Solos", "70", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Duos", "85", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Flex", "80", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Running Shoes", "78", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Triple team", "74", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Solos", "70", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Duos", "85", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Flex", "80", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Running Shoes", "78", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Triple team", "74", "U+1F4CD", "#E1DDD8"),
-      LeaderboardEntry("Solos", "70", "U+1F4CD", "#E1DDD8"),
-    ];
+  _getLeaderboard() {
+    setState(() {
+      isLoading = true;
+    });
+    teamService.getLeaderboards().then((value) {
+      setState(() {
+        isLoading = false;
+      });
+      if (value.error == null) {
+        TeamListResponse apiResponse = value.snapshot;
+        if (apiResponse.success ?? false) {
+          teams = apiResponse.data?.teams ?? [];
+          _checkElementPosition(teams.indexWhere(
+              (element) => element.id == PrefUtil().currentTeam!.id));
+        } else {
+          ToastUtils.showCustomSnackbar(
+            context: context,
+            contentText: apiResponse.message ?? "",
+            icon: const Icon(
+              Icons.cancel_outlined,
+              color: ColorStyle.whiteColor,
+            ),
+          );
+        }
+      } else {
+        ToastUtils.showCustomSnackbar(
+          context: context,
+          contentText: value.error ?? "",
+          icon: const Icon(
+            Icons.cancel_outlined,
+            color: ColorStyle.whiteColor,
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -92,20 +124,53 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 30),
-              const Text(
-                "Leaderboard",
-                style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 24,
-                    color: ColorStyle.primaryTextColor),
-              ),
-              const Text(
-                "Europe Ratings",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 16,
-                    color: ColorStyle.secondaryTextColor),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Leaderboard",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 24,
+                              color: ColorStyle.primaryTextColor),
+                        ),
+                        Text(
+                          "Europe Ratings",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
+                              color: ColorStyle.secondaryTextColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                  isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              color: ColorStyle.primaryColor,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : SizedBox(
+                          height: 30,
+                          child: CustomRoundedButton(
+                            "Refresh",
+                            () => _getLeaderboard(),
+                            roundedCorners: 40,
+                            textSize: 12,
+                            leftPadding: 20,
+                            rightPadding: 20,
+                          ),
+                        ),
+                ],
               ),
               const SizedBox(height: 15),
               Expanded(
@@ -113,7 +178,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: EdgeInsets.zero,
-                  itemCount: _getLeaderboardEntries().length,
+                  itemCount: teams.length,
                   itemBuilder: (context, index) =>
                       AnimationConfiguration.staggeredList(
                     position: index,
@@ -186,13 +251,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildLeaderboardTeamWidget(int index) {
+    bool isMyTeam = teams[index].id == PrefUtil().currentTeam!.id;
     return Container(
       margin: EdgeInsets.only(
-          top: 8,
-          bottom: index == (_getLeaderboardEntries().length - 1) ? 130 : 8),
+          top: 8, bottom: index == (teams.length - 1) ? 130 : 8),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: index == 11 ? ColorStyle.primaryColor : ColorStyle.cardColor,
+        color: isMyTeam ? ColorStyle.primaryColor : ColorStyle.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: ColorStyle.blackColor, width: 1),
       ),
@@ -207,7 +272,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
-                        color: index == 11
+                        color: isMyTeam
                             ? ColorStyle.whiteColor
                             : ColorStyle.primaryTextColor),
                   ),
@@ -222,15 +287,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   height: 25,
                 ),
           const SizedBox(width: 15),
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: index == 11
-                ? const Color(0xFF4F7DE2)
-                : AvatarUtils.hexToColor(
-                    _getLeaderboardEntries()[index].bgColor),
-            child: Text(
-              AvatarUtils.getEmoji(_getLeaderboardEntries()[index].emoji),
-              style: const TextStyle(fontSize: 28),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(300),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: CachedNetworkImage(
+                imageUrl: 'https://via.placeholder.com/400',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 15),
@@ -238,12 +303,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _getLeaderboardEntries()[index].name,
+                teams[index].name ?? '',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: index == 11
+                    color: isMyTeam
                         ? ColorStyle.whiteColor
                         : ColorStyle.primaryTextColor),
               ),
@@ -254,7 +319,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
-                    color: index == 11
+                    color: isMyTeam
                         ? ColorStyle.whiteColor
                         : ColorStyle.greyTextColor),
               ),
@@ -262,12 +327,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           ),
           const Spacer(),
           Text(
-            _getLeaderboardEntries()[index].score,
+            '${teams[index].score ?? 0}',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
-                color: index == 11
+                color: isMyTeam
                     ? ColorStyle.whiteColor
                     : ColorStyle.primaryTextColor),
           ),

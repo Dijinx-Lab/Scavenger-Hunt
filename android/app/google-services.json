@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "835449879489",
+    "project_id": "scavengerhunt-be4ff",
+    "storage_bucket": "scavengerhunt-be4ff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835449879489:android:ff529eab677abcaff24d40",
+        "android_client_info": {
+          "package_name": "com.dijinx.scavenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDESgS166swE0-0DUVlZEikRvASlP8b9sY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

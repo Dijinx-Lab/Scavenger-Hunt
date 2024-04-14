@@ -1,9 +1,15 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:location/location.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
+import 'package:scavenger_hunt/models/api/base/base_response.dart';
+import 'package:scavenger_hunt/models/api/route/routes_response/routes_response.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
+import 'package:scavenger_hunt/services/challenge_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
-import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
+import 'package:scavenger_hunt/utility/pref_utils.dart';
+import 'package:scavenger_hunt/utility/timer_utils.dart';
 
 class ProcessingScreen extends StatefulWidget {
   const ProcessingScreen({super.key});
@@ -15,37 +21,93 @@ class ProcessingScreen extends StatefulWidget {
 class _ProcessingScreenState extends State<ProcessingScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  double _value = 0.0;
 
   @override
   void initState() {
+    super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 2),
     );
-    _animationController.addListener(() => _animateProgress());
-    _animationController.forward();
-
-    super.initState();
-  }
-
-  _animateProgress() {
-    if (_animationController.value >= 1) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          learnRouteRoute,
-          arguments: LearnArgs(isForFinish: false),
-          (e) => false);
-    } else {
-      setState(() {
-        _value = _animationController.value;
-      });
-    }
+    _startApiCalls();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _startApiCalls() async {
+    await _animateToProgress(0.3);
+    if (mounted) {
+      if (!PrefUtil().isLocationImportanceShown) {
+        await showOkAlertDialog(
+            context: context,
+            title: 'Locations',
+            message:
+                "Your location permissions are required to place you accuratly on the Scavenger Hunt map");
+        PrefUtil().isLocationImportanceShown = true;
+      }
+    }
+    await _initializeLocationAndSave();
+    await _animateToProgress(0.9);
+    await _saveRouteDetails();
+    await _animateToProgress(1);
+
+    if (mounted) {
+      if (PrefUtil().isMapShown) {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(baseRoute, (route) => false);
+      } else {
+        Navigator.of(context).pushNamed(learnRouteRoute,
+            arguments: LearnArgs(isForFinish: false));
+      }
+    }
+  }
+
+  Future<void> _animateToProgress(double progress) async {
+    await _animationController.animateTo(
+      progress,
+      curve: Curves.linear,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  Future<void> _saveRouteDetails() async {
+    BaseResponse directionsResponse = await ChallengeService()
+        .getRouteDetails(PrefUtil().currentTeam!.teamCode!);
+    if (directionsResponse.error == null) {
+      RoutesResponse apiResponse =
+          directionsResponse.snapshot as RoutesResponse;
+      PrefUtil().currentRoute = apiResponse.data?.routes?.first;
+      if (PrefUtil().currentRoute!.timings != null) {
+        TimerUtils()
+            .startCountdown(PrefUtil().currentRoute!.timings!.timeLeft!);
+      }
+    }
+  }
+
+  Future<void> _initializeLocationAndSave() async {
+    Location location = Location();
+    bool? serviceEnabled;
+    PermissionStatus? permissionGranted;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+    }
+    if (permissionGranted == PermissionStatus.granted) {
+      LocationData locationData = await location.getLocation();
+
+      PrefUtil().lastLatitude = locationData.latitude!;
+      PrefUtil().lastLongitude = locationData.longitude!;
+    }
   }
 
   @override
@@ -58,37 +120,40 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           child: Column(
             children: [
               const SizedBox(height: 30),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: SvgPicture.asset(
-                      "assets/svgs/ic_back.svg",
+              Visibility(
+                visible: Navigator.of(context).canPop(),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: SvgPicture.asset(
+                        "assets/svgs/ic_back.svg",
+                      ),
+                      visualDensity: VisualDensity.compact,
                     ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Create Team",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 24,
-                            color: ColorStyle.primaryTextColor),
-                      ),
-                      Text(
-                        "Create a team or join",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 16,
-                            color: ColorStyle.secondaryTextColor),
-                      ),
-                    ],
-                  ),
-                ],
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Join Team",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 24,
+                              color: ColorStyle.primaryTextColor),
+                        ),
+                        Text(
+                          "Join a team",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
+                              color: ColorStyle.secondaryTextColor),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const Spacer(),
               Center(
@@ -117,26 +182,16 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               SizedBox(
                 width: 50,
                 height: 50,
-                child: CircularProgressIndicator(
-                  value: _value,
-                  strokeWidth: 2.5,
-                  backgroundColor: ColorStyle.grey100Color,
+                child: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) => CircularProgressIndicator(
+                    value: _animationController.value,
+                    strokeWidth: 2.5,
+                    backgroundColor: ColorStyle.grey100Color,
+                  ),
                 ),
               ),
               const Spacer(),
-              SizedBox(
-                height: 60,
-                width: double.infinity,
-                child: CustomRoundedButton(
-                  "Continue",
-                  () => Navigator.of(context).pushNamedAndRemoveUntil(
-                      learnRouteRoute,
-                      arguments: LearnArgs(isForFinish: false),
-                      (e) => false),
-                  textColor: ColorStyle.whiteColor,
-                ),
-              ),
-              const SizedBox(height: 15),
             ],
           ),
         ),

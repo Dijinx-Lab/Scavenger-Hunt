@@ -1,8 +1,8 @@
 const String welcomeRoute = '/welcome';
 const String termsRoute = '/terms';
 const String joinTeamRoute = '/join-team';
-const String createTeamRoute = '/create-team';
-const String teamCodeRoute = '/team-code';
+// const String createTeamRoute = '/create-team';
+// const String teamCodeRoute = '/team-code';
 const String processingRoute = '/processing';
 const String learnRouteRoute = '/learn-route';
 const String baseRoute = '/base';
@@ -10,3 +10,4 @@ const String challengesRoute = '/challenges';
 const String questionsRoute = '/questions';
 const String pointsRoute = '/points';
 const String finishedRoute = '/finished';
+const String splashRoute = '/';
