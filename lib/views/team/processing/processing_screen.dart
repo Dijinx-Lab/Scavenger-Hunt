@@ -7,6 +7,7 @@ import 'package:scavenger_hunt/models/api/base/base_response.dart';
 import 'package:scavenger_hunt/models/api/route/routes_response/routes_response.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/services/challenge_service.dart';
+import 'package:scavenger_hunt/services/map_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/utility/timer_utils.dart';
@@ -50,7 +51,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
         PrefUtil().isLocationImportanceShown = true;
       }
     }
-    await _initializeLocationAndSave();
+    await MapService.defaults().initializeLocationAndSave();
     await _animateToProgress(0.9);
     await _saveRouteDetails();
     await _animateToProgress(1);
@@ -85,28 +86,6 @@ class _ProcessingScreenState extends State<ProcessingScreen>
         TimerUtils()
             .startCountdown(PrefUtil().currentRoute!.timings!.timeLeft!);
       }
-    }
-  }
-
-  Future<void> _initializeLocationAndSave() async {
-    Location location = Location();
-    bool? serviceEnabled;
-    PermissionStatus? permissionGranted;
-
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-    }
-
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-    }
-    if (permissionGranted == PermissionStatus.granted) {
-      LocationData locationData = await location.getLocation();
-
-      PrefUtil().lastLatitude = locationData.latitude!;
-      PrefUtil().lastLongitude = locationData.longitude!;
     }
   }
 

@@ -25,14 +25,43 @@ class MapService {
   Symbol? myLocationSymbol;
   List<Symbol> challengesSymbols = [];
   Symbol? selectedSymbol;
-  Location location = Location();
+  Location location = Location.instance;
   bool isRouteActive = false;
   Line? routeLine;
   LatLng? startingRoutePosition;
 
+  MapService.defaults();
+
   MapService(double lastLatitude, double lastLongitude) {
     currPosition = LatLng(lastLatitude, lastLongitude);
     initialCameraPosition = CameraPosition(target: currPosition, zoom: 16);
+  }
+
+  void dispose() {
+    controller?.onSymbolTapped.remove(onSymbolTapped);
+
+    controller?.dispose();
+  }
+
+  Future<void> initializeLocationAndSave() async {
+    bool? serviceEnabled;
+    PermissionStatus? permissionGranted;
+
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+    }
+    if (permissionGranted == PermissionStatus.granted) {
+      LocationData locationData = await location.getLocation();
+
+      PrefUtil().lastLatitude = locationData.latitude!;
+      PrefUtil().lastLongitude = locationData.longitude!;
+    }
   }
 
   void onMapCreated(MapboxMapController controller) async {
@@ -65,8 +94,7 @@ class MapService {
     if (controller == null) return;
     controller!.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(
-            target: challengesSymbols.first.options.geometry!, zoom: 17),
+        CameraPosition(target: LatLng(32.240076, -80.683378), zoom: 17),
       ),
     );
   }

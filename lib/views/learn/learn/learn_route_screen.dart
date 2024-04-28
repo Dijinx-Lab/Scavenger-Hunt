@@ -1,9 +1,11 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:location/location.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
+import 'package:scavenger_hunt/models/arguments/question_args.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
@@ -20,23 +22,34 @@ class LearnRouteScreen extends StatefulWidget {
 class _LearnRouteScreenState extends State<LearnRouteScreen> {
   bool isButtonLoading = false;
   late VideoPlayerController _controller;
-  late Future<void> _initializeVideoPlayerFuture;
+  late ChewieController _chewieController;
 
   @override
   void initState() {
     super.initState();
+    String url = widget.args.challenge != null
+        ? widget.args.challenge!.introUrl!
+        : 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
     _controller = VideoPlayerController.networkUrl(
-        Uri.parse(
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-        ),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
-    _initializeVideoPlayerFuture = _controller.initialize();
-    _controller.setLooping(true);
+      Uri.parse(
+        url,
+      ),
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
+
+    _controller.initialize();
+    _chewieController = ChewieController(
+        videoPlayerController: _controller,
+        autoPlay: true,
+        looping: true,
+        fullScreenByDefault: false);
+    //_controller.setLooping(true);
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _chewieController.dispose();
     super.dispose();
   }
 
@@ -82,7 +95,7 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
   _checkLocationAndGoMap() async {
     PermissionStatus? permissionGranted;
     bool? serviceEnabled;
-    Location location = Location();
+    Location location = Location.instance;
     serviceEnabled = await location.serviceEnabled();
 
     if (!serviceEnabled) {
@@ -119,9 +132,11 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                widget.args.isForFinish
-                    ? "You finish your route!"
-                    : "Learn about your route",
+                widget.args.challenge != null
+                    ? "Learn about your location"
+                    : widget.args.isForFinish
+                        ? "You finish your route!"
+                        : "Learn about your route",
                 style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 24,
@@ -131,9 +146,11 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 child: Text(
-                  widget.args.isForFinish
-                      ? "Watch a video and learn more about summary of your route"
-                      : "Watch a video and learn more about your route",
+                  widget.args.challenge != null
+                      ? "Watch a video and learn more about summary of your location"
+                      : widget.args.isForFinish
+                          ? "Watch a video and learn more about summary of your route"
+                          : "Watch a video and learn more about your route",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontWeight: FontWeight.w400,
@@ -147,42 +164,55 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                   width: double.maxFinite,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: ColorStyle.outline100Color,
-                    ),
+                    border: _chewieController.isPlaying
+                        ? null
+                        : Border.all(
+                            color: ColorStyle.outline100Color,
+                          ),
                   ),
-                  child: FutureBuilder(
-                    future: _initializeVideoPlayerFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        return Stack(
-                          children: [
-                            _controller.value.isPlaying
-                                ? GestureDetector(
-                                    onTap: () {
-                                      _controller.pause();
-                                      setState(() {});
-                                    },
-                                    child: VideoPlayer(_controller))
-                                : Container(),
-                            Visibility(
-                              visible: !_controller.value.isPlaying,
+                  child:
+
+                      // FutureBuilder(
+                      //   future: _initializeVideoPlayerFuture,
+                      //   builder: (context, snapshot) {
+                      //     if (snapshot.connectionState == ConnectionState.done) {
+                      //       return
+                      Stack(
+                    children: [
+                      _chewieController.isPlaying
+                          ? GestureDetector(
+                              onTap: () {
+                                _controller.pause();
+                                setState(() {});
+                              },
                               child: Center(
-                                child: IconButton(
-                                    onPressed: () {
-                                      _controller.play();
-                                      setState(() {});
-                                    },
-                                    icon: SvgPicture.asset(
-                                        "assets/svgs/ic_pause.svg")),
-                              ),
-                            )
-                          ],
-                        );
-                      } else {
-                        return Container();
-                      }
-                    },
+                                child: SizedBox(
+                                  width: double.maxFinite,
+                                  height: 220,
+                                  child: Chewie(
+                                    controller: _chewieController,
+                                  ),
+                                ),
+                              ))
+                          : Container(),
+                      Visibility(
+                        visible: !_chewieController.isPlaying,
+                        child: Center(
+                          child: IconButton(
+                              onPressed: () {
+                                _controller.play();
+                                setState(() {});
+                              },
+                              icon:
+                                  SvgPicture.asset("assets/svgs/ic_pause.svg")),
+                        ),
+                      )
+                    ],
+                    //       );
+                    //     } else {
+                    //       return Container();
+                    //     }
+                    //   },
                   ),
                 ),
               ),
@@ -193,16 +223,27 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 child: CustomRoundedButton(
                   "",
                   () {
-                    widget.args.isForFinish
-                        ? _popToMap()
-                        : _checkLocationAndGoMap();
+                    if (widget.args.challenge != null) {
+                      _chewieController.pause();
+                      Navigator.of(context).popAndPushNamed(challengesRoute,
+                          arguments:
+                              QuestionArgs(challenge: widget.args.challenge!));
+                    } else if (widget.args.isForFinish) {
+                      _popToMap();
+                    } else {
+                      _checkLocationAndGoMap();
+                    }
                   },
                   textColor: ColorStyle.whiteColor,
                   widgetButton: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        widget.args.isForFinish ? "Finish" : "Start Journey",
+                        widget.args.challenge != null
+                            ? "Continue"
+                            : widget.args.isForFinish
+                                ? "Finish"
+                                : "Start Journey",
                         style: const TextStyle(
                             height: 1.2,
                             fontSize: 16,

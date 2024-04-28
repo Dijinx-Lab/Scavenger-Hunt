@@ -44,7 +44,7 @@ class _McqWidgetState extends State<McqWidget> {
         : (showAnswer &&
                 _selectedAnswer == widget.question.options![index] &&
                 _selectedAnswer == widget.question.answer)
-            ? ColorStyle.primaryColor
+            ? ColorStyle.green100Color
             : (showAnswer &&
                     _selectedAnswer == widget.question.options![index] &&
                     _selectedAnswer != widget.question.answer)

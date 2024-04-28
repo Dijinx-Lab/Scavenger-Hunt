@@ -40,6 +40,8 @@ class ColorStyle {
   static const outline100Color = Color(0xFF646464);
   static const black200Color = Color(0xFF666666);
   static const red100Color = Color(0xFFD41615);
+  static const green100Color = Color.fromARGB(255, 18, 187, 18);
+
   static const grey100Color = Color(0xFFF1EDE7);
   static const scrollColor = Color(0xFFEFEFEF);
   static const greyTextColor = Color(0xFF939393);

@@ -22,7 +22,6 @@ class BaseScreen extends StatefulWidget {
 }
 
 class _BaseScreenState extends State<BaseScreen> {
-  late Timer _timer;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 0;
 
@@ -67,7 +66,6 @@ class _BaseScreenState extends State<BaseScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
     super.dispose();
   }
 

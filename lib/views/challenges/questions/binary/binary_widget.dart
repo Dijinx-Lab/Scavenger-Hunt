@@ -61,7 +61,7 @@ class _BinaryWidgetState extends State<BinaryWidget> {
           _selectedAnswer != null &&
           !_selectedAnswer! &&
           _selectedAnswer == widget.question.answer) {
-        return ColorStyle.primaryColor;
+        return ColorStyle.green100Color;
       } else if (showAnswer &&
           _selectedAnswer != null &&
           !_selectedAnswer! &&

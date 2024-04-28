@@ -25,6 +25,7 @@ class _PictureWidgetState extends State<PictureWidget> {
   bool showAnswer = false;
 
   _openImagePicker() async {
+    String? newImage;
     ValueKey<String>? result = await showModalActionSheet(
         context: context,
         actions: [
@@ -34,10 +35,11 @@ class _PictureWidgetState extends State<PictureWidget> {
         cancelLabel: 'Cancel');
     if (result != null) {
       if (result.value == 'gallery') {
-        image = await PickerUtils.pickImage();
+        newImage = await PickerUtils.pickImage();
       } else if (result.value == 'camera') {
-        image = await PickerUtils.captureImage();
+        newImage = await PickerUtils.captureImage();
       }
+      image = newImage;
       widget.onDataFilled(image, true);
       setState(() {});
     }

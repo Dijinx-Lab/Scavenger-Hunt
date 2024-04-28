@@ -8,7 +8,7 @@ import 'package:scavenger_hunt/views/challenges/details/challenges_detail_screen
 import 'package:scavenger_hunt/views/challenges/finished/finished_screen.dart';
 import 'package:scavenger_hunt/views/challenges/points/points_screen.dart';
 import 'package:scavenger_hunt/views/challenges/questions/question_screen.dart';
-import 'package:scavenger_hunt/views/learn/learn_route_screen.dart';
+import 'package:scavenger_hunt/views/learn/learn/learn_route_screen.dart';
 import 'package:scavenger_hunt/views/splash/splash_screen.dart';
 import 'package:scavenger_hunt/views/team/join_team/join_team_screen.dart';
 import 'package:scavenger_hunt/views/team/processing/processing_screen.dart';

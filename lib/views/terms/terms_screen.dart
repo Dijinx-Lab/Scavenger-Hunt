@@ -12,6 +12,7 @@ class TermsScreen extends StatefulWidget {
 }
 
 class _TermsScreenState extends State<TermsScreen> {
+  bool _termsAccepted = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,27 +71,59 @@ class _TermsScreenState extends State<TermsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _termsAccepted = !_termsAccepted;
+                  });
+                },
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _termsAccepted,
+                      onChanged: (val) {
+                        setState(() {
+                          _termsAccepted = !_termsAccepted;
+                        });
+                      },
+                    ),
+                    Expanded(
+                      child: Text(
+                        "I've read and accept the terms and conditions",
+                        //textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: ColorStyle.outline100Color),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 60,
                 width: double.infinity,
                 child: CustomRoundedButton(
                   "Continue",
-                  () => Navigator.of(context).pushNamed(joinTeamRoute),
-                  textColor: ColorStyle.whiteColor,
+                  () {
+                    if (_termsAccepted) {
+                      Navigator.of(context).pushNamed(processingRoute);
+                    }
+                  },
+                  textColor: _termsAccepted
+                      ? ColorStyle.whiteColor
+                      : ColorStyle.primaryColor,
+                  borderColor: _termsAccepted
+                      ? ColorStyle.whiteColor
+                      : ColorStyle.primaryColor,
+                  buttonBackgroundColor: !_termsAccepted
+                      ? ColorStyle.whiteColor
+                      : ColorStyle.primaryColor,
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                child: Text(
-                  "By pressing “Continue” you accept with terms and conditions",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                      color: ColorStyle.outline100Color),
-                ),
-              ),
+              const SizedBox(height: 30),
             ],
           ),
         ),

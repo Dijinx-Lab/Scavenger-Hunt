@@ -8,18 +8,19 @@ class Challenge {
   final int? totalScore;
   final String? route;
   final String? description;
+  final String? introUrl;
 
-  Challenge({
-    this.id,
-    this.name,
-    this.difficulty,
-    this.longitude,
-    this.latitude,
-    this.questions,
-    this.totalScore,
-    this.route,
-    this.description,
-  });
+  Challenge(
+      {this.id,
+      this.name,
+      this.difficulty,
+      this.longitude,
+      this.latitude,
+      this.questions,
+      this.totalScore,
+      this.route,
+      this.description,
+      this.introUrl});
 
   factory Challenge.fromJson(Map<String, dynamic> json) => Challenge(
         id: json["_id"],
@@ -31,6 +32,7 @@ class Challenge {
         totalScore: json["total_score"],
         route: json["route"],
         description: json["description"],
+        introUrl: json["intro_url"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -43,5 +45,6 @@ class Challenge {
         "total_score": totalScore,
         "route": route,
         "description": description,
+        "intro_url": introUrl
       };
 }

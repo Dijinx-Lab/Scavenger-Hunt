@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:flutter/scheduler.dart';
 import 'package:image/image.dart' as Img;
 
 import 'package:flutter/material.dart';
@@ -47,6 +48,8 @@ class _QuestionScreenState extends State<QuestionScreen> {
   List<Widget> steps = [];
   dynamic currentAnswer;
   bool isLoading = false;
+  PageController controller =
+      PageController(viewportFraction: 1, keepPage: true);
 
   @override
   void initState() {
@@ -56,6 +59,27 @@ class _QuestionScreenState extends State<QuestionScreen> {
     stepperIndex = widget.arguments.selectedIndex;
     steps = _getStepsList();
     super.initState();
+  }
+
+  @override
+  dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  _moveToNextPage() {
+    stepperIndex = nextQuestionIndexWithNullAnswer(stepperIndex);
+    isSubmitted = false;
+    isValidToProceed = false;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (controller.hasClients) {
+        controller.jumpToPage(
+          stepperIndex,
+        );
+        setState(() {});
+      }
+    });
   }
 
   _getStepsList() {
@@ -227,9 +251,37 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: steps[stepperIndex],
+                    child: PageView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (BuildContext context, index) {
+                        return steps[stepperIndex];
+                      },
+                      itemCount: steps.length,
+                      controller: controller,
+                    ),
                   ),
                 ),
+                questions[stepperIndex].type != "wordjumble"
+                    ? Container()
+                    : const Row(
+                        children: [
+                          Icon(
+                            Icons.info,
+                            color: ColorStyle.primaryColor,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "If you would like to change a letter placed in the box, touch to remove it",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 13,
+                                  color: ColorStyle.secondaryTextColor),
+                            ),
+                          ),
+                        ],
+                      ),
+                const SizedBox(height: 10),
                 SizedBox(
                   height: 60,
                   width: double.infinity,
@@ -305,11 +357,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   _saveAnswer() async {
     if (isSubmitted) {
       if (!areAllAnswersNonNull()) {
-        setState(() {
-          stepperIndex = nextQuestionIndexWithNullAnswer(stepperIndex);
-          isSubmitted = false;
-          isValidToProceed = false;
-        });
+        _moveToNextPage();
       } else {
         Navigator.of(context).pushNamed(pointsRoute,
             arguments: QuestionArgs(challenge: challenge));

@@ -263,7 +263,7 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
                     ? null
                     : MaterialStatePropertyAll(
                         (questions[index].submittedAnswer!.isCorrect ?? false)
-                            ? ColorStyle.primaryColor
+                            ? ColorStyle.green100Color
                             : ColorStyle.red100Color),
                 visualDensity: VisualDensity.compact,
                 onChanged: (val) {})

@@ -11,6 +11,7 @@ import 'package:scavenger_hunt/models/api/base/base_response.dart';
 import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
 import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_directions.dart';
 import 'package:scavenger_hunt/models/api/route/route_response/route_response.dart';
+import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/models/arguments/question_args.dart';
 import 'package:scavenger_hunt/models/events/route_completed/route_completed.dart';
 import 'package:scavenger_hunt/models/events/start_quest/start_quest.dart';
@@ -76,6 +77,12 @@ class _MapScreenState extends State<MapScreen> {
     MapScreen.eventBus.on<StartQuest>().listen((event) => _handleQuestStart());
   }
 
+  @override
+  dispose() {
+    mapService.dispose();
+    super.dispose();
+  }
+
   _handleRouteCompleted() {
     if (isQuestActive) {
       _handleQuestStop();
@@ -116,15 +123,13 @@ class _MapScreenState extends State<MapScreen> {
 
   _handleNavigationDataToPolylines(MapBoxDirection directions) async {
     await mapService.addNavigationRoute(directions);
-    setState(() {
-      isQuestActive = true;
-    });
   }
 
   _handleSymbolTap(Symbol symbol) {
     if (symbol.data?['challengeDetails'] == null) {
       return;
     }
+    print(symbol.data!['challengeDetails'].id);
     if (!isQuestActive) {
       _openBottomSheet(
           context,
@@ -163,8 +168,13 @@ class _MapScreenState extends State<MapScreen> {
 
   _openQuestionsList() {
     Challenge challenge = mapService.getActiveChallenge();
-    Navigator.of(context).pushNamed(challengesRoute,
-        arguments: QuestionArgs(challenge: challenge));
+    if (challenge.introUrl != null) {
+      Navigator.of(context).pushNamed(learnRouteRoute,
+          arguments: LearnArgs(isForFinish: false, challenge: challenge));
+    } else {
+      Navigator.of(context).pushNamed(challengesRoute,
+          arguments: QuestionArgs(challenge: challenge));
+    }
   }
 
   _addCurrentLocationMarker() async {
@@ -283,20 +293,20 @@ class _MapScreenState extends State<MapScreen> {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              SizedBox(
-                                height: 30,
-                                child: CustomRoundedButton(
-                                  "View",
-                                  () => _openQuestSheet(),
-                                  roundedCorners: 40,
-                                  textSize: 12,
-                                  leftPadding: 20,
-                                  rightPadding: 20,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
+                              // SizedBox(
+                              //   height: 30,
+                              //   child: CustomRoundedButton(
+                              //     "View",
+                              //     () => _openQuestSheet(),
+                              //     roundedCorners: 40,
+                              //     textSize: 12,
+                              //     leftPadding: 20,
+                              //     rightPadding: 20,
+                              //   ),
+                              // ),
+                              // SizedBox(
+                              //   width: 5,
+                              // ),
                               SizedBox(
                                 height: 30,
                                 child: CustomRoundedButton(
@@ -344,6 +354,7 @@ class _MapScreenState extends State<MapScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) => sheet,
     );
+
     if (sheetResponse != null) {
       onReturn(sheetResponse);
     }
@@ -432,10 +443,20 @@ class _MapScreenState extends State<MapScreen> {
                             fontSize: 24,
                             color: ColorStyle.primaryTextColor),
                       ),
-                      Image.asset(
-                        "assets/pngs/helmet_logo.png",
-                        width: 25,
-                        fit: BoxFit.fitWidth,
+                      GestureDetector(
+                        onTap: () async {
+                          PrefUtil().currentRoute = null;
+                          PrefUtil().currentTeam = null;
+                          PrefUtil().isTeamJoined = false;
+                          PrefUtil().isMapShown = false;
+                          await Future.delayed(Durations.extralong1);
+                          exit(0);
+                        },
+                        child: Image.asset(
+                          "assets/pngs/helmet_logo.png",
+                          width: 25,
+                          fit: BoxFit.fitWidth,
+                        ),
                       )
                     ],
                   ),

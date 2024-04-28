@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _moveToNextScreen() {
     Future.delayed(const Duration(milliseconds: 500)).then((value) {
-      if (PrefUtil().isTeamJoined) {
+      if (PrefUtil().currentTeam != null) {
         Navigator.of(context)
             .pushNamedAndRemoveUntil(processingRoute, (route) => false);
       } else {

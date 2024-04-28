@@ -114,7 +114,7 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
 
   _getCellColor() {
     return (showAnswer && _selectedAnswer == widget.question.answer)
-        ? ColorStyle.primaryColor
+        ? ColorStyle.green100Color
         : (showAnswer && _selectedAnswer != widget.question.answer)
             ? ColorStyle.red100Color
             : ColorStyle.outline100Color;

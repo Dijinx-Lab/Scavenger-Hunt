@@ -44,7 +44,7 @@ class _SliderWidgetState extends State<SliderWidget> {
 
   _getCellColor() {
     return (showAnswer && _selectedAnswer == widget.question.answer)
-        ? ColorStyle.primaryColor
+        ? ColorStyle.green100Color
         : (showAnswer && _selectedAnswer != widget.question.answer)
             ? ColorStyle.red100Color
             : ColorStyle.outline100Color;
@@ -104,7 +104,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                   _selectAnswer(_selectedAnswer);
                 },
                 handlerHeight: 40,
-                handlerWidth: 40,
+                handlerWidth: 60,
                 tooltip: FlutterSliderTooltip(disabled: true),
                 handler: FlutterSliderHandler(
                   decoration: BoxDecoration(
