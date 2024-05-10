@@ -7,7 +7,6 @@ import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
 import 'package:scavenger_hunt/models/api/question/question/question.dart';
 import 'package:scavenger_hunt/models/api/question/question_response/question_response.dart';
 import 'package:scavenger_hunt/models/arguments/question_args.dart';
-import 'package:scavenger_hunt/models/events/submit_question/submit_question.dart';
 import 'package:scavenger_hunt/services/question_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
@@ -108,6 +107,7 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("res ${areAllAnswersNonNull()}");
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -188,6 +188,36 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
                           ),
                   ),
                 ),
+                Visibility(
+                  visible: !isLoading && areAllAnswersNonNull(),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 60,
+                        width: double.infinity,
+                        child: CustomRoundedButton(
+                          "",
+                          () {
+                            Navigator.of(context).pushNamed(pointsRoute,
+                                arguments: QuestionArgs(challenge: challenge));
+                          },
+                          widgetButton: const Text(
+                            "Continue",
+                            style: TextStyle(
+                                height: 1.2,
+                                fontSize: 16,
+                                color: ColorStyle.whiteColor,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          buttonBackgroundColor: ColorStyle.primaryColor,
+                          borderColor: ColorStyle.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                )
               ],
             ),
           ),
@@ -271,6 +301,16 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
         ),
       ),
     );
+  }
+
+  bool areAllAnswersNonNull() {
+    for (var question in questions) {
+      if (question.submittedAnswer == null) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   // _buildActiveChallengeWidget() {

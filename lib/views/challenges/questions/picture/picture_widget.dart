@@ -5,6 +5,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scavenger_hunt/models/api/question/question/question.dart';
+import 'package:scavenger_hunt/models/events/answer_submitted/answer_submitted.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/picker_utils.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
@@ -23,6 +24,16 @@ class PictureWidget extends StatefulWidget {
 class _PictureWidgetState extends State<PictureWidget> {
   String? image;
   bool showAnswer = false;
+
+  @override
+  initState() {
+    super.initState();
+    PictureWidget.eventBus.on<AnswerSubmitted>().listen((event) {
+      setState(() {
+        showAnswer = true;
+      });
+    });
+  }
 
   _openImagePicker() async {
     String? newImage;
@@ -62,7 +73,9 @@ class _PictureWidgetState extends State<PictureWidget> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: ColorStyle.blackColor,
+                    color: showAnswer
+                        ? ColorStyle.green100Color
+                        : ColorStyle.blackColor,
                   ),
                 ),
                 child: image == null || image == ''
@@ -91,12 +104,18 @@ class _PictureWidgetState extends State<PictureWidget> {
                             child: SizedBox(
                               height: 30,
                               child: CustomRoundedButton(
-                                "Retake",
+                                showAnswer ? "Uploaded" : "Retake",
                                 () => _openImagePicker(),
                                 roundedCorners: 40,
                                 textSize: 12,
                                 leftPadding: 20,
                                 rightPadding: 20,
+                                borderColor: showAnswer
+                                    ? ColorStyle.green100Color
+                                    : ColorStyle.primaryColor,
+                                buttonBackgroundColor: showAnswer
+                                    ? ColorStyle.green100Color
+                                    : ColorStyle.primaryColor,
                               ),
                             ),
                           ),

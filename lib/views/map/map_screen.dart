@@ -123,6 +123,9 @@ class _MapScreenState extends State<MapScreen> {
 
   _handleNavigationDataToPolylines(MapBoxDirection directions) async {
     await mapService.addNavigationRoute(directions);
+    setState(() {
+      isQuestActive = true;
+    });
   }
 
   _handleSymbolTap(Symbol symbol) {
@@ -449,8 +452,12 @@ class _MapScreenState extends State<MapScreen> {
                           PrefUtil().currentTeam = null;
                           PrefUtil().isTeamJoined = false;
                           PrefUtil().isMapShown = false;
+
                           await Future.delayed(Durations.extralong1);
-                          exit(0);
+                          if (mounted) {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                splashRoute, (e) => false);
+                          }
                         },
                         child: Image.asset(
                           "assets/pngs/helmet_logo.png",

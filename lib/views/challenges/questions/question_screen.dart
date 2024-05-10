@@ -9,25 +9,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/api/answer/answer_response.dart';
 import 'package:scavenger_hunt/models/api/challenge/challenge.dart';
-import 'package:scavenger_hunt/models/api/generic/generic_response.dart';
 import 'package:scavenger_hunt/models/api/question/question/question.dart';
 import 'package:scavenger_hunt/models/api/team/team_response/team_response.dart';
 import 'package:scavenger_hunt/models/arguments/question_args.dart';
 import 'package:scavenger_hunt/models/events/answer_submitted/answer_submitted.dart';
-import 'package:scavenger_hunt/models/events/refresh_leaderboards/refresh_leaderboards.dart';
-import 'package:scavenger_hunt/models/events/submit_question/submit_question.dart';
 import 'package:scavenger_hunt/services/challenge_service.dart';
 import 'package:scavenger_hunt/services/team_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/utility/toast_utils.dart';
-import 'package:scavenger_hunt/views/challenges/details/challenges_detail_screen.dart';
 import 'package:scavenger_hunt/views/challenges/questions/binary/binary_widget.dart';
 import 'package:scavenger_hunt/views/challenges/questions/mcq/mcq_widget.dart';
 import 'package:scavenger_hunt/views/challenges/questions/picture/picture_widget.dart';
 import 'package:scavenger_hunt/views/challenges/questions/slider/slider_widget.dart';
 import 'package:scavenger_hunt/views/challenges/questions/word_jumble/word_jumble_widget.dart';
-import 'package:scavenger_hunt/views/leaderboard/leaderboard_screen.dart';
 import 'package:scavenger_hunt/widgets/buttons/custom_rounded_button.dart';
 
 class QuestionScreen extends StatefulWidget {

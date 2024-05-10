@@ -45,7 +45,7 @@ class _BinaryWidgetState extends State<BinaryWidget> {
           _selectedAnswer != null &&
           _selectedAnswer! &&
           _selectedAnswer == widget.question.answer) {
-        return ColorStyle.primaryColor;
+        return ColorStyle.green100Color;
       } else if (showAnswer &&
           _selectedAnswer != null &&
           _selectedAnswer! &&
@@ -77,98 +77,101 @@ class _BinaryWidgetState extends State<BinaryWidget> {
   Widget build(BuildContext context) {
     return AbsorbPointer(
       absorbing: showAnswer,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Visibility(
-            visible: widget.question.picture != null &&
-                widget.question.picture != "",
-            child: Container(
-              height: 300,
-              width: double.maxFinite,
-              margin: const EdgeInsets.only(bottom: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: ColorStyle.blackColor,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Visibility(
+              visible: widget.question.picture != null &&
+                  widget.question.picture != "",
+              child: Container(
+                height: 300,
+                width: double.maxFinite,
+                margin: const EdgeInsets.only(bottom: 15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: ColorStyle.blackColor,
+                  ),
                 ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: widget.question.picture!,
-                  fit: BoxFit.cover,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.question.picture!,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
-          ),
-          Text(
-            widget.question.question ?? '',
-            style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 24,
-                color: ColorStyle.primaryTextColor),
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _selectAnswer(true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    decoration: BoxDecoration(
-                      color: _getCellColor(true),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: ColorStyle.blackColor,
+            Text(
+              widget.question.question ?? '',
+              style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 24,
+                  color: ColorStyle.primaryTextColor),
+            ),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _selectAnswer(true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: _getCellColor(true),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ColorStyle.blackColor,
+                        ),
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "True",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color: (_selectedAnswer != null && _selectedAnswer!)
-                                ? ColorStyle.whiteColor
-                                : ColorStyle.primaryTextColor),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _selectAnswer(false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    decoration: BoxDecoration(
-                      color: _getCellColor(false),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: ColorStyle.blackColor,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "False",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color:
-                                (_selectedAnswer != null && !_selectedAnswer!)
-                                    ? ColorStyle.whiteColor
-                                    : ColorStyle.primaryTextColor),
+                      child: Center(
+                        child: Text(
+                          "True",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              color:
+                                  (_selectedAnswer != null && _selectedAnswer!)
+                                      ? ColorStyle.whiteColor
+                                      : ColorStyle.primaryTextColor),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 15),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _selectAnswer(false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: _getCellColor(false),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ColorStyle.blackColor,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "False",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              color:
+                                  (_selectedAnswer != null && !_selectedAnswer!)
+                                      ? ColorStyle.whiteColor
+                                      : ColorStyle.primaryTextColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

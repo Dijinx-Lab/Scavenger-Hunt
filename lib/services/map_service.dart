@@ -39,7 +39,6 @@ class MapService {
 
   void dispose() {
     controller?.onSymbolTapped.remove(onSymbolTapped);
-
     controller?.dispose();
   }
 
@@ -47,12 +46,16 @@ class MapService {
     bool? serviceEnabled;
     PermissionStatus? permissionGranted;
 
+    location.changeSettings(accuracy: LocationAccuracy.balanced);
+
     serviceEnabled = await location.serviceEnabled();
+    print(serviceEnabled);
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
     }
 
     permissionGranted = await location.hasPermission();
+    print(permissionGranted);
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
     }
@@ -94,7 +97,7 @@ class MapService {
     if (controller == null) return;
     controller!.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(target: LatLng(32.240076, -80.683378), zoom: 17),
+        const CameraPosition(target: LatLng(32.240076, -80.683378), zoom: 17),
       ),
     );
   }
@@ -255,10 +258,7 @@ class MapService {
           ),
         );
       }
-    } else {
-      // ToastUtils.showSnackBar(
-      //     context, "Could not get navigations at this moment", "fail");
-    }
+    } else {}
   }
 
   double calculateDistance(LatLng start, LatLng end) {

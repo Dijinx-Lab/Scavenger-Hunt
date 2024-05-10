@@ -88,7 +88,7 @@ class _TermsScreenState extends State<TermsScreen> {
                         });
                       },
                     ),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         "I've read and accept the terms and conditions",
                         //textAlign: TextAlign.center,

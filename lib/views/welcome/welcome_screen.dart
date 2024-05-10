@@ -1,7 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:pinput/pinput.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/api/team/team_response/team_response.dart';
@@ -140,7 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       color: ColorStyle.secondaryTextColor),
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               const Text(
                 "Join a team",
                 style: TextStyle(
@@ -148,7 +147,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     fontSize: 22,
                     color: ColorStyle.primaryTextColor),
               ),
-              SizedBox(height: 25),
+              const SizedBox(height: 25),
               Pinput(
                 length: 6,
                 controller: _pinController,
@@ -209,7 +208,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 showCursor: true,
                 cursor: cursor,
               ),
-              Spacer(),
+              const Spacer(),
               const SizedBox(height: 30),
               SizedBox(
                 height: 60,

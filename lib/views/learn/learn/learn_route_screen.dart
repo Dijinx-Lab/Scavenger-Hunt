@@ -31,19 +31,14 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
         ? widget.args.challenge!.introUrl!
         : 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
     _controller = VideoPlayerController.networkUrl(
-      Uri.parse(
-        url,
-      ),
+      Uri.parse(url),
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
     );
 
     _controller.initialize();
     _chewieController = ChewieController(
-        videoPlayerController: _controller,
-        autoPlay: true,
-        looping: true,
-        fullScreenByDefault: false);
-    //_controller.setLooping(true);
+      videoPlayerController: _controller,
+    );
   }
 
   @override
@@ -96,13 +91,18 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
     PermissionStatus? permissionGranted;
     bool? serviceEnabled;
     Location location = Location.instance;
+    print("loc $location");
     serviceEnabled = await location.serviceEnabled();
+
+    print("service $serviceEnabled");
 
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
     }
 
     permissionGranted = await location.hasPermission();
+
+    print("perm $permissionGranted");
 
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
@@ -159,63 +159,63 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              Expanded(
-                child: Container(
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: _chewieController.isPlaying
-                        ? null
-                        : Border.all(
-                            color: ColorStyle.outline100Color,
+              _chewieController.isPlaying
+                  ? Expanded(
+                      child: Column(
+                        children: [
+                          const Spacer(),
+                          AspectRatio(
+                            aspectRatio: _controller.value.aspectRatio,
+                            child: Chewie(
+                              controller: _chewieController,
+                            ),
                           ),
-                  ),
-                  child:
-
-                      // FutureBuilder(
-                      //   future: _initializeVideoPlayerFuture,
-                      //   builder: (context, snapshot) {
-                      //     if (snapshot.connectionState == ConnectionState.done) {
-                      //       return
-                      Stack(
-                    children: [
-                      _chewieController.isPlaying
-                          ? GestureDetector(
-                              onTap: () {
-                                _controller.pause();
-                                setState(() {});
-                              },
-                              child: Center(
-                                child: SizedBox(
-                                  width: double.maxFinite,
-                                  height: 220,
-                                  child: Chewie(
-                                    controller: _chewieController,
-                                  ),
+                          const Spacer(),
+                        ],
+                      ),
+                    )
+                  : Expanded(
+                      child: Container(
+                        width: double.maxFinite,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: _chewieController.isPlaying
+                              ? null
+                              : Border.all(
+                                  color: ColorStyle.outline100Color,
                                 ),
-                              ))
-                          : Container(),
-                      Visibility(
-                        visible: !_chewieController.isPlaying,
-                        child: Center(
-                          child: IconButton(
-                              onPressed: () {
-                                _controller.play();
-                                setState(() {});
-                              },
-                              icon:
-                                  SvgPicture.asset("assets/svgs/ic_pause.svg")),
                         ),
-                      )
-                    ],
-                    //       );
-                    //     } else {
-                    //       return Container();
-                    //     }
-                    //   },
-                  ),
-                ),
-              ),
+                        child: Stack(
+                          children: [
+                            // _chewieController.isPlaying
+                            //     ? GestureDetector(
+                            //         onTap: () {
+                            //           _controller.pause();
+                            //           setState(() {});
+                            //         },
+                            //         child: Center(
+                            //           child: SizedBox(
+                            //             width: double.maxFinite,
+                            //             height: 220,
+                            //             child: Chewie(
+                            //               controller: _chewieController,
+                            //             ),
+                            //           ),
+                            //         ))
+                            //     : Container(),
+                            Center(
+                              child: IconButton(
+                                  onPressed: () {
+                                    _controller.play();
+                                    setState(() {});
+                                  },
+                                  icon: SvgPicture.asset(
+                                      "assets/svgs/ic_pause.svg")),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
               const SizedBox(height: 30),
               SizedBox(
                 height: 60,

@@ -54,9 +54,9 @@ class _McqWidgetState extends State<McqWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: AbsorbPointer(
-        absorbing: showAnswer,
+    return AbsorbPointer(
+      absorbing: showAnswer,
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

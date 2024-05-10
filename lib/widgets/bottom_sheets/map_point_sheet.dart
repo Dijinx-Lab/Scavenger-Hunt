@@ -58,31 +58,36 @@ class _MapPointSheetState extends State<MapPointSheet> {
     setState(() {
       isLoading = true;
     });
-    // BaseResponse directionsResponse =
-    //     await DirectionService().getDirections(source, dest);
-    // if (directionsResponse.error == null) {
-    //   MapBoxDirection directions =
-    //       directionsResponse.snapshot as MapBoxDirection;
-    //   if (mounted) {
-    bool isServerInformed = await _informServer();
-    setState(() {
-      isLoading = false;
-    });
-    if (isServerInformed && mounted) {
-      // Navigator.of(context).pop(directions);
-      //TODO: REMOVE
-      Navigator.of(context).pop(null);
+    BaseResponse directionsResponse =
+        await DirectionService().getDirections(source, dest);
+    if (directionsResponse.error == null) {
+      MapBoxDirection directions =
+          directionsResponse.snapshot as MapBoxDirection;
+      if (mounted) {
+        bool isServerInformed = await _informServer();
+        setState(() {
+          isLoading = false;
+        });
+        if (isServerInformed && mounted) {
+          Navigator.of(context).pop(directions);
+        }
+      }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        Navigator.of(context).pop();
+        await showOkAlertDialog(
+            context: context,
+            title: 'Oops...',
+            message:
+                "Please make sure that you are within the play area and have a stable internet connection for the quest");
+      }
     }
-    // }
-    // } else {
-    //   setState(() {
-    //     isLoading = false;
-    //   });
-    // }
   }
 
   Future<bool> _informServer() async {
-    print(challenge.id);
     BaseResponse toggleActiveApi = await ChallengeService()
         .toggleActiveStatus(PrefUtil().currentTeam!.teamCode!, challenge.id!);
     if (toggleActiveApi.error == null) {

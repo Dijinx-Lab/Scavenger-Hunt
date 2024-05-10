@@ -1,9 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:scavenger_hunt/keys/endpoint_keys.dart';
 import 'package:scavenger_hunt/models/api/answer/answer_response.dart';
