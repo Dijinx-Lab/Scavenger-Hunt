@@ -139,7 +139,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               ),
               const SizedBox(height: 10),
               const Text(
-                "Processing to app...",
+                "Code accepted",
                 style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 24,
@@ -148,7 +148,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 child: Text(
-                  "Your team successfully created here is code for your team to jin",
+                  "Processing to app...",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontWeight: FontWeight.w400,
