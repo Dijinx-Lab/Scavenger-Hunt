@@ -26,6 +26,9 @@ class ChallengeService {
         },
       );
 
+      print(url);
+      print(response.body);
+
       if (response.statusCode == 200) {
         var responseBody = json.decode(response.body);
         RoutesResponse apiResponse = RoutesResponse.fromJson(responseBody);

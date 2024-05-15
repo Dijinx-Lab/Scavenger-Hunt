@@ -84,21 +84,24 @@ class _BinaryWidgetState extends State<BinaryWidget> {
             Visibility(
               visible: widget.question.picture != null &&
                   widget.question.picture != "",
-              child: Container(
-                height: 300,
-                width: double.maxFinite,
-                margin: const EdgeInsets.only(bottom: 15),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: ColorStyle.blackColor,
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(
+                    maxHeight: 300,
                   ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: widget.question.picture!,
-                    fit: BoxFit.cover,
+                  margin: const EdgeInsets.only(bottom: 15),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    // border: Border.all(
+                    //   color: ColorStyle.blackColor,
+                    // ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.question.picture!,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),

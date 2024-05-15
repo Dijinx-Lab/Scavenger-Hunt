@@ -44,16 +44,16 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
     super.dispose();
   }
 
-  _handleSubmitQuestion(String id) {
-    // if (mounted) {
-    //   int index = questions.indexWhere((element) => element.id == id);
-    //   if (index == -1) {
-    //     questions[index].answered = true;
-    //   }
-    //   Future.delayed(Duration(milliseconds: 500))
-    //       .then((value) => setState(() {}));
-    // }
-  }
+  // _handleSubmitQuestion(String id) {
+  //   // if (mounted) {
+  //   //   int index = questions.indexWhere((element) => element.id == id);
+  //   //   if (index == -1) {
+  //   //     questions[index].answered = true;
+  //   //   }
+  //   //   Future.delayed(Duration(milliseconds: 500))
+  //   //       .then((value) => setState(() {}));
+  //   // }
+  // }
 
   _goToQuestion(index) async {
     if (questions[index].submittedAnswer == null) {
@@ -80,6 +80,7 @@ class _ChallengesDetailScreenState extends State<ChallengesDetailScreen> {
         QuestionsResponse apiResponse = value.snapshot;
         if (apiResponse.success ?? false) {
           questions = apiResponse.data?.questions ?? [];
+          print(questions.length);
           Future.delayed(const Duration(milliseconds: 300))
               .then((value) => setState(() => _showChallenges = true));
         } else {
