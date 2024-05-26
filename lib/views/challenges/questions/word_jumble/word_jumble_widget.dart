@@ -140,15 +140,20 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
                   margin: const EdgeInsets.only(bottom: 15),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    // border: Border.all(
-                    //   color: ColorStyle.blackColor,
-                    // ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CachedNetworkImage(
                       imageUrl: widget.question.picture!,
                       fit: BoxFit.cover,
+                      placeholder: (context, url) {
+                        return Container(
+                          color: ColorStyle.grey100Color,
+                          child: const Center(
+                            child: Text("Loading..."),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

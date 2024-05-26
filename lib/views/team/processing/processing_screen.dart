@@ -1,12 +1,12 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:location/location.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/api/base/base_response.dart';
 import 'package:scavenger_hunt/models/api/route/routes_response/routes_response.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/services/challenge_service.dart';
-import 'package:scavenger_hunt/services/map_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
 import 'package:scavenger_hunt/utility/timer_utils.dart';
@@ -50,7 +50,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
         PrefUtil().isLocationImportanceShown = true;
       }
     }
-    await MapService.defaults().initializeLocationAndSave();
+    await initializeLocationAndSave();
     await _animateToProgress(0.9);
     await _saveRouteDetails();
     await _animateToProgress(1);
@@ -63,6 +63,53 @@ class _ProcessingScreenState extends State<ProcessingScreen>
         Navigator.of(context).pushNamed(learnRouteRoute,
             arguments: LearnArgs(isForFinish: false));
       }
+    }
+  }
+
+  Future<void> initializeLocationAndSave() async {
+    try {
+      bool? serviceEnabled;
+      PermissionStatus? permissionGranted;
+      Location location = Location();
+
+      // Set accuracy to balanced
+      location.changeSettings(accuracy: LocationAccuracy.balanced);
+
+      // Check if the service is enabled
+      serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          print("Location service is not enabled.");
+          return;
+        }
+      }
+
+      // Check for location permissions
+      permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          print("Location permission not granted.");
+          return;
+        }
+      } else if (permissionGranted == PermissionStatus.deniedForever) {
+        print("Location permission permanently denied.");
+        return;
+      }
+
+      // Get the location data
+      if (permissionGranted == PermissionStatus.granted) {
+        LocationData locationData = await location.getLocation();
+
+        // Save the location data
+        PrefUtil().lastLatitude = locationData.latitude!;
+        PrefUtil().lastLongitude = locationData.longitude!;
+        print(
+            "Location saved: (${locationData.latitude}, ${locationData.longitude})");
+      }
+    } catch (e) {
+      print("Error while getting location: $e");
     }
   }
 

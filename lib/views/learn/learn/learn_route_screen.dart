@@ -35,10 +35,18 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
     );
 
-    _controller.initialize();
+    _controller.initialize().then((value) {});
+
     _chewieController = ChewieController(
       videoPlayerController: _controller,
     );
+    Future.delayed(const Duration(milliseconds: 1000)).then((value) {
+      setState(() {
+        _controller.play();
+      });
+    });
+
+    // _chewieController.play();
   }
 
   @override
@@ -159,63 +167,64 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              _chewieController.isPlaying
-                  ? Expanded(
-                      child: Column(
-                        children: [
-                          const Spacer(),
-                          AspectRatio(
-                            aspectRatio: _controller.value.aspectRatio,
-                            child: Chewie(
-                              controller: _chewieController,
-                            ),
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                    )
-                  : Expanded(
-                      child: Container(
-                        width: double.maxFinite,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: _chewieController.isPlaying
-                              ? null
-                              : Border.all(
-                                  color: ColorStyle.outline100Color,
-                                ),
-                        ),
-                        child: Stack(
-                          children: [
-                            // _chewieController.isPlaying
-                            //     ? GestureDetector(
-                            //         onTap: () {
-                            //           _controller.pause();
-                            //           setState(() {});
-                            //         },
-                            //         child: Center(
-                            //           child: SizedBox(
-                            //             width: double.maxFinite,
-                            //             height: 220,
-                            //             child: Chewie(
-                            //               controller: _chewieController,
-                            //             ),
-                            //           ),
-                            //         ))
-                            //     : Container(),
-                            Center(
-                              child: IconButton(
-                                  onPressed: () {
-                                    _controller.play();
-                                    setState(() {});
-                                  },
-                                  icon: SvgPicture.asset(
-                                      "assets/svgs/ic_pause.svg")),
-                            )
-                          ],
-                        ),
+              // _chewieController.isPlaying
+              //     ?
+              Expanded(
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: Chewie(
+                        controller: _chewieController,
                       ),
                     ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+              // : Expanded(
+              //     child: Container(
+              //       width: double.maxFinite,
+              //       decoration: BoxDecoration(
+              //         borderRadius: BorderRadius.circular(8),
+              //         border: _chewieController.isPlaying
+              //             ? null
+              //             : Border.all(
+              //                 color: ColorStyle.outline100Color,
+              //               ),
+              //       ),
+              //       child: Stack(
+              //         children: [
+              //           // _chewieController.isPlaying
+              //           //     ? GestureDetector(
+              //           //         onTap: () {
+              //           //           _controller.pause();
+              //           //           setState(() {});
+              //           //         },
+              //           //         child: Center(
+              //           //           child: SizedBox(
+              //           //             width: double.maxFinite,
+              //           //             height: 220,
+              //           //             child: Chewie(
+              //           //               controller: _chewieController,
+              //           //             ),
+              //           //           ),
+              //           //         ))
+              //           //     : Container(),
+              //           Center(
+              //             child: IconButton(
+              //                 onPressed: () {
+              //                   _controller.play();
+              //                   setState(() {});
+              //                 },
+              //                 icon: SvgPicture.asset(
+              //                     "assets/svgs/ic_pause.svg")),
+              //           )
+              //         ],
+              //       ),
+              //     ),
+              //   ),
               const SizedBox(height: 30),
               SizedBox(
                 height: 60,

@@ -80,6 +80,14 @@ class _McqWidgetState extends State<McqWidget> {
                     child: CachedNetworkImage(
                       imageUrl: widget.question.picture!,
                       fit: BoxFit.cover,
+                       placeholder: (context, url) {
+                        return Container(
+                          color: ColorStyle.grey100Color,
+                          child: const Center(
+                            child: Text("Loading..."),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

@@ -26,6 +26,7 @@ class CustomTextField extends StatelessWidget {
   final Function? onTap;
   final bool readOnly;
   final String? errorText;
+  final TextAlign textAlign;
   const CustomTextField(
       {super.key,
       required this.controller,
@@ -50,7 +51,8 @@ class CustomTextField extends StatelessWidget {
       this.onChanged,
       this.errorText,
       this.onTap,
-      this.readOnly = false});
+      this.readOnly = false,
+      this.textAlign = TextAlign.start});
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +67,7 @@ class CustomTextField extends StatelessWidget {
         autofocus: autofocus,
         cursorColor: cursorColor,
         readOnly: readOnly,
+        textAlign: textAlign,
         onTap: () {
           if (onTap != null) {
             onTap!();

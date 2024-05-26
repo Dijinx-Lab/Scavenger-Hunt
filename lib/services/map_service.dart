@@ -42,31 +42,6 @@ class MapService {
     controller?.dispose();
   }
 
-  Future<void> initializeLocationAndSave() async {
-    bool? serviceEnabled;
-    PermissionStatus? permissionGranted;
-
-    location.changeSettings(accuracy: LocationAccuracy.balanced);
-
-    serviceEnabled = await location.serviceEnabled();
-    print(serviceEnabled);
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-    }
-
-    permissionGranted = await location.hasPermission();
-    print(permissionGranted);
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-    }
-    if (permissionGranted == PermissionStatus.granted) {
-      LocationData locationData = await location.getLocation();
-
-      PrefUtil().lastLatitude = locationData.latitude!;
-      PrefUtil().lastLongitude = locationData.longitude!;
-    }
-  }
-
   void onMapCreated(MapboxMapController controller) async {
     this.controller = controller;
     controller.onSymbolTapped.add(onSymbolTapped);
@@ -145,7 +120,10 @@ class MapService {
     List<Challenge> pendingChallenges = routeDetails.pendingChallenges ?? [];
     List<Challenge> completedChallenges =
         routeDetails.completedChallenges ?? [];
-    Challenge? activeChallenge = routeDetails.activeChallenge;
+    Challenge? activeChallenge;
+    if (routeDetails.timings?.endTime == null) {
+      activeChallenge = routeDetails.activeChallenge;
+    }
 
     for (Challenge challenge in pendingChallenges) {
       Symbol symbol = await controller!.addSymbol(

@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as Img;
 
 import 'package:flutter/material.dart';
@@ -350,63 +351,62 @@ class _QuestionScreenState extends State<QuestionScreen> {
   }
 
   _saveAnswer() async {
-    if (isSubmitted) {
-      if (!areAllAnswersNonNull()) {
-        _moveToNextPage();
-      } else {
-        Navigator.of(context).pushNamed(pointsRoute,
-            arguments: QuestionArgs(challenge: challenge));
-      }
-    } else {
-      setState(() {
-        isLoading = true;
-      });
-      if (questions[stepperIndex].type == "picture") {
-        currentAnswer =
-            await challengeService.getUploadUrl(currentAnswer, 'answers');
-      }
-      challengeService
-          .submitAnswer(currentAnswer, questions[stepperIndex].id!,
-              PrefUtil().currentTeam!.teamCode!)
-          .then((value) {
-        setState(() {
-          isLoading = false;
-        });
-        if (value.error == null) {
-          AnswerResponse apiResponse = value.snapshot;
-          if (apiResponse.success ?? false) {
-            if (isValidToProceed) {
-              questions[stepperIndex].submittedAnswer =
-                  apiResponse.data?.answer;
-              _refreshTeamData();
-              _notifyChild();
+    FocusManager.instance.primaryFocus?.unfocus();
 
-              setState(() {
-                isSubmitted = true;
-              });
-            }
-          } else {
-            ToastUtils.showCustomSnackbar(
-              context: context,
-              contentText: apiResponse.message ?? "",
-              icon: const Icon(
-                Icons.cancel_outlined,
-                color: ColorStyle.whiteColor,
-              ),
-            );
+    // else {
+    setState(() {
+      isLoading = true;
+    });
+    if (questions[stepperIndex].type == "picture") {
+      currentAnswer =
+          await challengeService.getUploadUrl(currentAnswer, 'answers');
+    }
+    challengeService
+        .submitAnswer(currentAnswer, questions[stepperIndex].id!,
+            PrefUtil().currentTeam!.teamCode!)
+        .then((value) async {
+      setState(() {
+        isLoading = false;
+      });
+      if (value.error == null) {
+        AnswerResponse apiResponse = value.snapshot;
+        if (apiResponse.success ?? false) {
+          if (isValidToProceed) {
+            _showSubmissionDetailDialog(
+                apiResponse.data!.answer!.isCorrect!,
+                apiResponse.data!.answer!.score!,
+                PrefUtil().currentTeam!.score!);
+
+            questions[stepperIndex].submittedAnswer = apiResponse.data?.answer;
+            _refreshTeamData();
+            _notifyChild();
+
+            setState(() {
+              isSubmitted = true;
+            });
           }
         } else {
           ToastUtils.showCustomSnackbar(
             context: context,
-            contentText: value.error ?? "",
+            contentText: apiResponse.message ?? "",
             icon: const Icon(
               Icons.cancel_outlined,
               color: ColorStyle.whiteColor,
             ),
           );
         }
-      });
-    }
+      } else {
+        ToastUtils.showCustomSnackbar(
+          context: context,
+          contentText: value.error ?? "",
+          icon: const Icon(
+            Icons.cancel_outlined,
+            color: ColorStyle.whiteColor,
+          ),
+        );
+      }
+    });
+    // }
   }
 
   int nextQuestionIndexWithNullAnswer(int currentIndex) {
@@ -476,5 +476,125 @@ class _QuestionScreenState extends State<QuestionScreen> {
         } else {}
       } else {}
     });
+  }
+
+  _showSubmissionDetailDialog(
+    bool isCorrect,
+    int points,
+    int teamScore,
+  ) async {
+    int originalTeamScore = teamScore;
+
+    if (isCorrect) {
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 200));
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 200));
+      HapticFeedback.heavyImpact();
+    } else {
+      HapticFeedback.vibrate();
+    }
+
+    Dialog dialog = Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Center(
+                  child: Text(
+                    "Answer Submitted",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: ColorStyle.primaryTextColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  isCorrect
+                      ? "Congratulations 🥳\nYou've recieved +$points points for this question, and your total score is"
+                      : "Oops 😔\nYou've not recieved any points for this question, and your total score is still",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 16,
+                      color: ColorStyle.secondaryTextColor),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                StatefulBuilder(builder: (context, setState) {
+                  Future.delayed(const Duration(milliseconds: 300))
+                      .then((value) {
+                    if (teamScore == originalTeamScore && isCorrect) {
+                      setState(() {
+                        teamScore += points;
+                      });
+                    }
+                  });
+                  return AnimatedFlipCounter(
+                    duration: const Duration(milliseconds: 1000),
+                    prefix: isCorrect ? "+ " : "",
+                    suffix: isCorrect ? " ✅" : " ❌",
+                    value: teamScore,
+                    textStyle: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        color: isCorrect
+                            ? ColorStyle.green100Color
+                            : ColorStyle.red100Color),
+                  );
+                }),
+                const SizedBox(
+                  height: 20,
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                  child: SizedBox(
+                      height: 50,
+                      width: double.maxFinite,
+                      child: CustomRoundedButton(
+                        "Continue",
+                        () {
+                          if (isSubmitted) {
+                            Navigator.of(context).pop();
+                            if (!areAllAnswersNonNull()) {
+                              _moveToNextPage();
+                            } else {
+                              Navigator.of(context).pushNamed(pointsRoute,
+                                  arguments:
+                                      QuestionArgs(challenge: challenge));
+                            }
+                          }
+                        },
+                        textSize: 14,
+                        roundedCorners: 4,
+                        textWeight: FontWeight.w600,
+                      )),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => dialog,
+        barrierColor: const Color(0x59000000));
   }
 }

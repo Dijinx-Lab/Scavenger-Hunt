@@ -52,7 +52,7 @@ class PickerUtils {
 
     XFile? xfile = await _picker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 40,
+      imageQuality: 10,
     );
     if (xfile != null) {
       if (await File(xfile.path).exists()) {

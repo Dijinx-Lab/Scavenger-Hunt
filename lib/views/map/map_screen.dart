@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -132,7 +133,7 @@ class _MapScreenState extends State<MapScreen> {
     if (symbol.data?['challengeDetails'] == null) {
       return;
     }
-    print(symbol.data!['challengeDetails'].id);
+
     if (!isQuestActive) {
       _openBottomSheet(
           context,
@@ -183,6 +184,35 @@ class _MapScreenState extends State<MapScreen> {
   _addCurrentLocationMarker() async {
     await mapService.addCurrentLocationMarker();
     setState(() {});
+  }
+
+  _showActionsDialog() async {
+    if (mounted) {
+      var result = await showModalActionSheet(
+        context: context,
+        cancelLabel: "Cancel",
+        title: "Select an option",
+        actions: [
+          const SheetAction(
+              key: "signout",
+              label: "Sign Out",
+              isDefaultAction: true,
+              textStyle: TextStyle(color: ColorStyle.red100Color)),
+        ],
+      );
+      if (result == "signout") {
+        PrefUtil().currentRoute = null;
+        PrefUtil().currentTeam = null;
+        PrefUtil().isTeamJoined = false;
+        PrefUtil().isMapShown = false;
+
+        await Future.delayed(Durations.extralong1);
+        if (mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(splashRoute, (e) => false);
+        }
+      }
+    }
   }
 
   Widget _showRouteAlreadyCompleted() {
@@ -446,20 +476,9 @@ class _MapScreenState extends State<MapScreen> {
                             fontSize: 24,
                             color: ColorStyle.primaryTextColor),
                       ),
-                      GestureDetector(
-                        onTap: () async {
-                          PrefUtil().currentRoute = null;
-                          PrefUtil().currentTeam = null;
-                          PrefUtil().isTeamJoined = false;
-                          PrefUtil().isMapShown = false;
-
-                          await Future.delayed(Durations.extralong1);
-                          if (mounted) {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                splashRoute, (e) => false);
-                          }
-                        },
-                        child: Image.asset(
+                      IconButton(
+                        onPressed: () => _showActionsDialog(),
+                        icon: Image.asset(
                           "assets/pngs/helmet_logo.png",
                           width: 25,
                           fit: BoxFit.fitWidth,
