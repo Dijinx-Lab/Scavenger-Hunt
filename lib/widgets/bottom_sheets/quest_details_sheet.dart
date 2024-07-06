@@ -80,88 +80,105 @@ class _QuestDetailsSheetState extends State<QuestDetailsSheet> {
   Widget build(BuildContext context) {
     return Container(
       width: double.maxFinite,
+      height: MediaQuery.of(context).size.height * .6,
       padding: const EdgeInsets.symmetric(vertical: 35),
       decoration: BoxDecoration(
           color: ColorStyle.backgroundColor,
           borderRadius: BorderRadius.circular(18)),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: SvgPicture.asset(
-                  "assets/svgs/ic_back.svg",
-                ),
-                visualDensity: VisualDensity.compact,
-              ),
-              Expanded(
+          Expanded(
+            child: RawScrollbar(
+              thumbVisibility: true,
+              trackVisibility: true,
+              thumbColor: ColorStyle.primaryColor,
+              trackColor: ColorStyle.scrollColor,
+              radius: const Radius.circular(6),
+              child: SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      challenge.name ?? "",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 24,
-                          color: ColorStyle.primaryTextColor),
-                    ),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Current points: ",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16,
-                              color: ColorStyle.secondaryTextColor),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: SvgPicture.asset(
+                            "assets/svgs/ic_back.svg",
+                          ),
+                          visualDensity: VisualDensity.compact,
                         ),
-                        Text(
-                          "${PrefUtil().currentTeam!.score ?? 0}",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16,
-                              color: ColorStyle.primaryColor),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                challenge.name ?? "",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 24,
+                                    color: ColorStyle.primaryTextColor),
+                              ),
+                              Row(
+                                children: [
+                                  const Text(
+                                    "Current points: ",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
+                                        color: ColorStyle.secondaryTextColor),
+                                  ),
+                                  Text(
+                                    "${PrefUtil().currentTeam!.score ?? 0}",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
+                                        color: ColorStyle.primaryColor),
+                                  ),
+                                ],
+                              ),
+                              _buildInfoWidget()
+                            ],
+                          ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 20),
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context).popAndPushNamed(
+                                challengesRoute,
+                                arguments: QuestionArgs(challenge: challenge)),
+                            child: Image.asset(
+                              'assets/pngs/mini_map.png',
+                              height: 70,
+                              width: 70,
+                            ),
+                          ),
+                        )
                       ],
                     ),
-                    _buildInfoWidget()
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25),
+                      child: Text(
+                        challenge.description ?? "",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 14,
+                            color: ColorStyle.secondaryTextColor),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    _buildProgressWidget(),
+                    const SizedBox(height: 15),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).popAndPushNamed(
-                      challengesRoute,
-                      arguments: QuestionArgs(challenge: challenge)),
-                  child: Image.asset(
-                    'assets/pngs/mini_map.png',
-                    height: 70,
-                    width: 70,
-                  ),
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
-            child: Text(
-              challenge.description ?? "",
-              style: const TextStyle(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14,
-                  color: ColorStyle.secondaryTextColor),
             ),
           ),
-          const SizedBox(height: 40),
-          _buildProgressWidget(),
-          const SizedBox(height: 25),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 15,

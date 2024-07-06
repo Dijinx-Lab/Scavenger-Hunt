@@ -76,31 +76,33 @@ class PrefUtil {
         final String teamJson = json.encode(value.toJson());
         _sharedPreferences!.setString(team, teamJson);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   RouteDetails? get currentRoute {
     try {
       String? routeJson = _sharedPreferences!.getString(route);
+
       if (routeJson == null || routeJson == '') return null;
 
       return RouteDetails.fromJson(json.decode(routeJson));
     } catch (e) {
-      
       return null;
     }
   }
 
   set currentRoute(RouteDetails? value) {
     try {
+      print(value);
       if (value == null) {
         _sharedPreferences!.setString(route, '');
       } else {
         final String routeJson = json.encode(value.toJson());
+        print(routeJson);
         _sharedPreferences!.setString(route, routeJson);
       }
     } catch (e) {
+      print(e);
     }
   }
 
@@ -111,7 +113,6 @@ class PrefUtil {
 
       return NotificationAction.fromJson(json.decode(notifJson));
     } catch (e) {
-      
       return null;
     }
   }
@@ -124,8 +125,6 @@ class PrefUtil {
         final String notifJson = json.encode(value.toJson());
         _sharedPreferences!.setString(lastNotifAction, notifJson);
       }
-    } catch (e) {
-      
-    }
+    } catch (e) {}
   }
 }

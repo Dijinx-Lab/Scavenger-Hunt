@@ -4,31 +4,35 @@ import 'package:scavenger_hunt/models/api/route/timings/timings.dart';
 class RouteDetails {
   final String? id;
   final String? introVideo;
+  final String? outroVideo;
   final int? totalTime;
-  final double? finishLineLat;
-  final double? finishLineLong;
+  final String? introMessage;
+  final String? outroMessage;
   final Challenge? activeChallenge;
   final List<Challenge>? completedChallenges;
   final List<Challenge>? pendingChallenges;
   final Timings? timings;
 
-  RouteDetails(
-      {this.id,
-      this.introVideo,
-      this.totalTime,
-      this.finishLineLat,
-      this.finishLineLong,
-      this.activeChallenge,
-      this.completedChallenges,
-      this.pendingChallenges,
-      this.timings});
+  RouteDetails({
+    this.id,
+    this.introVideo,
+    this.outroVideo,
+    this.totalTime,
+    this.introMessage,
+    this.outroMessage,
+    this.activeChallenge,
+    this.completedChallenges,
+    this.pendingChallenges,
+    this.timings,
+  });
 
   factory RouteDetails.fromJson(Map<String, dynamic> json) => RouteDetails(
         id: json["_id"],
         introVideo: json["intro_video"],
+        outroVideo: json["outro_video"],
         totalTime: json["total_time"],
-        finishLineLat: json["finish_line_lat"]?.toDouble(),
-        finishLineLong: json["finish_line_long"]?.toDouble(),
+        introMessage: json["intro_message"],
+        outroMessage: json["outro_message"],
         activeChallenge: json["active_challenge"] == null
             ? null
             : Challenge.fromJson(json["active_challenge"]),
@@ -47,9 +51,10 @@ class RouteDetails {
   Map<String, dynamic> toJson() => {
         "_id": id,
         "intro_video": introVideo,
+        "outro_video": outroVideo,
         "total_time": totalTime,
-        "finish_line_lat": finishLineLat,
-        "finish_line_long": finishLineLong,
+        "intro_message": introMessage,
+        "outro_message": outroMessage,
         "active_challenge": activeChallenge?.toJson(),
         "completed_challenges": completedChallenges == null
             ? []

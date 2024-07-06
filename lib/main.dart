@@ -81,7 +81,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Scavenger Hunt',
+      title: 'WARRIOR',
       debugShowCheckedModeBanner: false,
       navigatorObservers: [
         NavigationObserver.instance,

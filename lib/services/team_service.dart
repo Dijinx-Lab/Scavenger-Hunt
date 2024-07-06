@@ -82,4 +82,27 @@ class TeamService {
       return BaseResponse(null, e.toString());
     }
   }
+
+  Future<BaseResponse> getTerms(bool forTerms) async {
+    try {
+      String url = forTerms ? EndpointKeys.terms : EndpointKeys.privacy;
+
+      var response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "content-type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // var responseBody = json.decode(response.body);
+        // TeamListResponse apiResponse = TeamListResponse.fromJson(responseBody);
+        return BaseResponse(response.body, null);
+      } else {
+        return BaseResponse(null, response.body);
+      }
+    } catch (e) {
+      return BaseResponse(null, e.toString());
+    }
+  }
 }

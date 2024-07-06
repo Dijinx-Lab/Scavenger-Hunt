@@ -26,8 +26,10 @@ class Challenge {
         id: json["_id"],
         name: json["name"],
         difficulty: json["difficulty"],
-        longitude: json["longitude"]?.toDouble(),
-        latitude: json["latitude"]?.toDouble(),
+        longitude:
+            json["longitude"] != null ? double.parse(json["longitude"]) : null,
+        latitude:
+            json["latitude"] != null ? double.parse(json["latitude"]) : null,
         questions: json["questions"],
         totalScore: json["total_score"],
         route: json["route"],
@@ -39,8 +41,8 @@ class Challenge {
         "_id": id,
         "name": name,
         "difficulty": difficulty,
-        "longitude": longitude,
-        "latitude": latitude,
+        "longitude": longitude?.toString(),
+        "latitude": latitude?.toString(),
         "questions": questions,
         "total_score": totalScore,
         "route": route,

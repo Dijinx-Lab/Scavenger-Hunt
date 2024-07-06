@@ -152,18 +152,18 @@ class MapService {
       challengesSymbols.add(symbol);
     }
 
-    if (routeDetails.finishLineLat != null &&
-        routeDetails.finishLineLong != null) {
-      Symbol symbol = await controller!.addSymbol(
-        SymbolOptions(
-          geometry:
-              LatLng(routeDetails.finishLineLat!, routeDetails.finishLineLong!),
-          iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
-          zIndex: 1,
-        ),
-      );
-      challengesSymbols.add(symbol);
-    }
+    // if (routeDetails.finishLineLat != null &&
+    //     routeDetails.finishLineLong != null) {
+    //   Symbol symbol = await controller!.addSymbol(
+    //     SymbolOptions(
+    //       geometry:
+    //           LatLng(routeDetails.finishLineLat!, routeDetails.finishLineLong!),
+    //       iconImage: 'assets/pngs/map_pucs/final_challenge_puc.png',
+    //       zIndex: 1,
+    //     ),
+    //   );
+    //   challengesSymbols.add(symbol);
+    // }
 
     if (activeChallenge != null) {
       Symbol symbol = await controller!.addSymbol(

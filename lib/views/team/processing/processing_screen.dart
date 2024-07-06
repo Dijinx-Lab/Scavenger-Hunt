@@ -73,7 +73,6 @@ class _ProcessingScreenState extends State<ProcessingScreen>
       Location location = Location();
 
       // Set accuracy to balanced
-      location.changeSettings(accuracy: LocationAccuracy.balanced);
 
       // Check if the service is enabled
       serviceEnabled = await location.serviceEnabled();
@@ -100,6 +99,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
       // Get the location data
       if (permissionGranted == PermissionStatus.granted) {
+        location.changeSettings(accuracy: LocationAccuracy.balanced);
         LocationData locationData = await location.getLocation();
 
         // Save the location data
@@ -124,13 +124,24 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   Future<void> _saveRouteDetails() async {
     BaseResponse directionsResponse = await ChallengeService()
         .getRouteDetails(PrefUtil().currentTeam!.teamCode!);
+
     if (directionsResponse.error == null) {
       RoutesResponse apiResponse =
           directionsResponse.snapshot as RoutesResponse;
-      PrefUtil().currentRoute = apiResponse.data?.routes?.first;
-      if (PrefUtil().currentRoute!.timings != null) {
-        TimerUtils()
-            .startCountdown(PrefUtil().currentRoute!.timings!.timeLeft!);
+      if (apiResponse.success ?? false) {
+        PrefUtil().currentRoute = apiResponse.data?.routes?.first;
+        if (PrefUtil().currentRoute!.timings != null) {
+          TimerUtils()
+              .startCountdown(PrefUtil().currentRoute!.timings!.timeLeft!);
+        }
+      } else {
+        await showOkAlertDialog(
+            context: context,
+            title: 'Alert',
+            message:
+                "Your session has expired please enter your team code again");
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(welcomeRoute, (route) => false);
       }
     }
   }

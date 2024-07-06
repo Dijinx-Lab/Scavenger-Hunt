@@ -54,12 +54,12 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
 
     for (int i = 0; i < initialLetters.length; i++) {
       randomizedLetters.add({
-        'letter': initialLetters[i],
+        'letter': initialLetters[i].toUpperCase(),
         'initialIndex': i,
       });
     }
 
-    while (randomizedLetters.length % 6 != 0) {
+    while (randomizedLetters.length != widget.question.jumbledWord) {
       randomizedLetters.add({
         'letter': String.fromCharCode(random.nextInt(26) + 'A'.codeUnitAt(0)),
         'initialIndex': randomizedLetters.length,
@@ -113,9 +113,13 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
   }
 
   _getCellColor() {
-    return (showAnswer && _selectedAnswer == widget.question.answer)
+    return (showAnswer &&
+            _selectedAnswer.toLowerCase() ==
+                widget.question.answer.toLowerCase())
         ? ColorStyle.green100Color
-        : (showAnswer && _selectedAnswer != widget.question.answer)
+        : (showAnswer &&
+                _selectedAnswer.toLowerCase() !=
+                    widget.question.answer.toLowerCase())
             ? ColorStyle.red100Color
             : ColorStyle.outline100Color;
   }
@@ -190,7 +194,7 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
                         letter?['letter'] ?? "",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 20.0,
+                            fontSize: 16.0,
                             fontWeight: FontWeight.w500,
                             color: _getCellColor()),
                       ),
@@ -199,7 +203,7 @@ class _WordJumbleWidgetState extends State<WordJumbleWidget> {
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             SizedBox(
               height: 180,
               width: double.maxFinite,

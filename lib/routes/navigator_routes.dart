@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/models/arguments/question_args.dart';
+import 'package:scavenger_hunt/models/arguments/term_args.dart';
 import 'package:scavenger_hunt/routes/navigation_observer.dart';
 import 'package:scavenger_hunt/views/base/base_screen.dart';
 import 'package:scavenger_hunt/views/challenges/details/challenges_detail_screen.dart';
@@ -27,7 +28,9 @@ class NavigatorRoutes {
         page = const WelcomeScreen();
         break;
       case termsRoute:
-        page = const TermsScreen();
+        page = TermsScreen(
+          arguments: settings.arguments as TermsArgs,
+        );
         break;
       case joinTeamRoute:
         page = const JoinTeamScreen();

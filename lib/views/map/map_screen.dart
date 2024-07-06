@@ -14,6 +14,7 @@ import 'package:scavenger_hunt/models/api/mapbox/mapbox_directions/mapbox_direct
 import 'package:scavenger_hunt/models/api/route/route_response/route_response.dart';
 import 'package:scavenger_hunt/models/arguments/learn_args.dart';
 import 'package:scavenger_hunt/models/arguments/question_args.dart';
+import 'package:scavenger_hunt/models/arguments/term_args.dart';
 import 'package:scavenger_hunt/models/events/route_completed/route_completed.dart';
 import 'package:scavenger_hunt/models/events/start_quest/start_quest.dart';
 import 'package:scavenger_hunt/models/events/stop_quest/stop_quest.dart';
@@ -194,9 +195,16 @@ class _MapScreenState extends State<MapScreen> {
         title: "Select an option",
         actions: [
           const SheetAction(
+              key: "terms",
+              label: "Terms and Conditions",
+              textStyle: TextStyle(color: ColorStyle.primaryColor)),
+          const SheetAction(
+              key: "privacy",
+              label: "Privacy Policy",
+              textStyle: TextStyle(color: ColorStyle.primaryColor)),
+          const SheetAction(
               key: "signout",
               label: "Sign Out",
-              isDefaultAction: true,
               textStyle: TextStyle(color: ColorStyle.red100Color)),
         ],
       );
@@ -211,6 +219,16 @@ class _MapScreenState extends State<MapScreen> {
           Navigator.of(context)
               .pushNamedAndRemoveUntil(splashRoute, (e) => false);
         }
+      } else if (result == "privacy" && mounted) {
+        Navigator.of(context).pushNamed(
+          termsRoute,
+          arguments: TermsArgs(forTerms: false, fromMap: true),
+        );
+      } else if (result == "terms" && mounted) {
+        Navigator.of(context).pushNamed(
+          termsRoute,
+          arguments: TermsArgs(forTerms: true, fromMap: true),
+        );
       }
     }
   }

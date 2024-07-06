@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:scavenger_hunt/keys/route_keys.dart';
 import 'package:scavenger_hunt/models/api/team/team_response/team_response.dart';
+import 'package:scavenger_hunt/models/arguments/term_args.dart';
 import 'package:scavenger_hunt/services/team_service.dart';
 import 'package:scavenger_hunt/styles/color_style.dart';
 import 'package:scavenger_hunt/utility/pref_utils.dart';
@@ -99,8 +100,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       setState(() {
         isJoinButtonLoading = false;
       });
-      Navigator.of(context).pushNamed(termsRoute);
-      
+      Navigator.of(context).pushNamed(
+        termsRoute,
+        arguments: TermsArgs(forTerms: true, fromMap: false),
+      );
     });
   }
 

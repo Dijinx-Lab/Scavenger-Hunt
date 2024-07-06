@@ -29,7 +29,9 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
     super.initState();
     String url = widget.args.challenge != null
         ? widget.args.challenge!.introUrl!
-        : 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
+        : widget.args.isForFinish
+            ? PrefUtil().currentRoute?.outroVideo ?? ""
+            : PrefUtil().currentRoute?.introVideo ?? "";
     _controller = VideoPlayerController.networkUrl(
       Uri.parse(url),
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
@@ -157,8 +159,8 @@ class _LearnRouteScreenState extends State<LearnRouteScreen> {
                   widget.args.challenge != null
                       ? "Watch a video and learn more about summary of your location"
                       : widget.args.isForFinish
-                          ? "Watch a video and learn more about summary of your route"
-                          : "Watch a video and learn more about your route",
+                          ? PrefUtil().currentRoute?.outroMessage ?? ""
+                          : PrefUtil().currentRoute?.introMessage ?? "",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       fontWeight: FontWeight.w400,

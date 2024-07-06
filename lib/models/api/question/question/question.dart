@@ -9,7 +9,7 @@ class Question {
   final List<dynamic>? options;
   final int? sliderMin;
   final int? sliderMax;
-  final String? jumbledWord;
+  final int? jumbledWord;
   final String? challenge;
   final dynamic answer;
   Answer? submittedAnswer;
